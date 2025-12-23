@@ -81,21 +81,32 @@ const Index = () => {
   useEffect(() => {
     if (currentScreen === 'seven') {
       const texts = ['Validando dados...', 'Conectando ao servidor...', 'Concluindo resgate...', 'Quase pronto...'];
-      let index = 0;
+      let currentIndex = 0;
+      let intervalId: NodeJS.Timeout;
+      let timeoutId: NodeJS.Timeout;
       
-      const interval = setInterval(() => {
-        index++;
-        if (index < texts.length) {
-          setLoadingText(texts[index]);
-          setLoadingProgress((index + 1) * 25);
-        } else {
-          clearInterval(interval);
-          setTimeout(() => setCurrentScreen('nine'), 500);
-        }
-      }, 1600);
-      
+      setLoadingText(texts[0]);
       setLoadingProgress(25);
-      return () => clearInterval(interval);
+      
+      intervalId = setInterval(() => {
+        currentIndex++;
+        if (currentIndex < texts.length) {
+          setLoadingText(texts[currentIndex]);
+          setLoadingProgress((currentIndex + 1) * 25);
+        }
+        
+        if (currentIndex >= texts.length - 1) {
+          clearInterval(intervalId);
+          timeoutId = setTimeout(() => {
+            setCurrentScreen('nine');
+          }, 800);
+        }
+      }, 1200);
+      
+      return () => {
+        clearInterval(intervalId);
+        if (timeoutId) clearTimeout(timeoutId);
+      };
     }
   }, [currentScreen]);
 
