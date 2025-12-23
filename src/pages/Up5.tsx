@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PixPaymentPopup from '@/components/PixPaymentPopup';
+import { trackViewContent, trackClickButton } from '@/lib/tiktokPixel';
 import '../styles/app.css';
 
 const SALDO_ATUAL = 4287.90;
@@ -18,6 +19,10 @@ const formatBR = (value: number) => {
 const Up5 = () => {
   const navigate = useNavigate();
   const [showPixPopup, setShowPixPopup] = useState(false);
+
+  useEffect(() => {
+    trackViewContent('Taxa de Câmbio', TAXA_CAMBIO);
+  }, []);
 
   const handlePaymentSuccess = () => {
     setShowPixPopup(false);

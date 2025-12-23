@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { trackInitiateCheckout, trackAddPaymentInfo, trackPurchase } from '@/lib/tiktokPixel';
 
 interface PixPaymentPopupProps {
   amount: number;
@@ -15,6 +16,11 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [status, setStatus] = useState<string>('PENDING');
+
+  // Track InitiateCheckout when popup opens
+  useEffect(() => {
+    trackInitiateCheckout(amount / 100, description || 'Pagamento PIX');
+  }, [amount, description]);
 
   useEffect(() => {
     const createPayment = async () => {
@@ -42,6 +48,9 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
         setPaymentId(data.id);
         setPixCode(data.pix_code);
         setStatus(data.status || 'PENDING');
+        
+        // Track AddPaymentInfo when PIX code is generated
+        trackAddPaymentInfo(amount / 100);
       } catch (err) {
         console.error('Exception creating payment:', err);
         setError('Erro inesperado. Tente novamente.');
@@ -74,6 +83,8 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
 
         if (statusData.status === 'APPROVED') {
           setStatus('APPROVED');
+          // Track Purchase - MOST IMPORTANT EVENT
+          trackPurchase(amount / 100, description || 'Pagamento PIX', paymentId);
           onSuccess();
         } else if (statusData.status) {
           setStatus(statusData.status);
