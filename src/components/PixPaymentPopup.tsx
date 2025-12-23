@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, forwardRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { trackInitiateCheckout, trackAddPaymentInfo, trackPurchase } from '@/lib/tiktokPixel';
 
@@ -9,7 +9,7 @@ interface PixPaymentPopupProps {
   onClose: () => void;
 }
 
-const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPaymentPopupProps) => {
+const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amount, description, onSuccess, onClose }, ref) => {
   const [pixCode, setPixCode] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,8 +65,11 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
   useEffect(() => {
     if (!paymentId || status === 'APPROVED') return;
 
+    console.log('Starting payment status polling for:', paymentId);
+
     const checkStatus = async () => {
       try {
+        console.log('Checking payment status...');
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bravive-pix-status?id=${paymentId}`,
           {
@@ -79,13 +82,17 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
         );
 
         const statusData = await response.json();
-        console.log('Payment status:', statusData);
+        console.log('Payment status response:', statusData);
 
         if (statusData.status === 'APPROVED') {
           setStatus('APPROVED');
+          console.log('Payment APPROVED! Tracking purchase and calling onSuccess');
           // Track Purchase - MOST IMPORTANT EVENT
           trackPurchase(amount / 100, description || 'Pagamento PIX', paymentId);
-          onSuccess();
+          // Small delay to ensure tracking fires before navigation
+          setTimeout(() => {
+            onSuccess();
+          }, 500);
         } else if (statusData.status) {
           setStatus(statusData.status);
         }
@@ -94,9 +101,12 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
       }
     };
 
+    // Check immediately
+    checkStatus();
+    
     const interval = setInterval(checkStatus, 3000);
     return () => clearInterval(interval);
-  }, [paymentId, status, onSuccess]);
+  }, [paymentId, status, onSuccess, amount, description]);
 
   const handleCopy = useCallback(() => {
     if (pixCode) {
@@ -271,6 +281,8 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
       `}</style>
     </div>
   );
-};
+});
+
+PixPaymentPopup.displayName = 'PixPaymentPopup';
 
 export default PixPaymentPopup;
