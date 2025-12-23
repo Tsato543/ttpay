@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import '../styles/app.css';
 
 interface PixPaymentPopupProps {
-  amount: number; // em centavos
+  amount: number;
   description?: string;
   onSuccess: () => void;
   onClose: () => void;
@@ -17,7 +16,6 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
   const [copied, setCopied] = useState(false);
   const [status, setStatus] = useState<string>('PENDING');
 
-  // Criar o pagamento ao montar
   useEffect(() => {
     const createPayment = async () => {
       try {
@@ -55,18 +53,11 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
     createPayment();
   }, [amount, description]);
 
-  // Polling do status a cada 3 segundos
   useEffect(() => {
     if (!paymentId || status === 'APPROVED') return;
 
     const checkStatus = async () => {
       try {
-        const { data, error: fnError } = await supabase.functions.invoke('bravive-pix-status', {
-          body: {},
-          method: 'GET',
-        });
-
-        // Para GET com query params, precisamos fazer de outra forma
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bravive-pix-status?id=${paymentId}`,
           {
@@ -109,30 +100,80 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
   };
 
   return (
-    <div className="pix-popup-overlay">
-      <div className="pix-popup-container">
-        <button className="pix-popup-close" onClick={onClose}>×</button>
-        
-        <div className="pix-popup-header">
-          <img src="/images/pix-solo.svg" alt="PIX" className="pix-popup-logo" />
-          <h2 className="pix-popup-title">Pagamento via PIX</h2>
-        </div>
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999,
+      padding: '20px',
+    }}>
+      <div style={{
+        backgroundColor: '#fff',
+        borderRadius: '12px',
+        width: '100%',
+        maxWidth: '340px',
+        padding: '24px',
+        position: 'relative',
+        fontFamily: 'Inter, system-ui, sans-serif',
+      }}>
+        <button 
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            background: 'none',
+            border: 'none',
+            fontSize: '20px',
+            color: '#999',
+            cursor: 'pointer',
+            lineHeight: 1,
+          }}
+        >
+          ×
+        </button>
 
-        <div className="pix-popup-amount">
-          R$ {formatAmount(amount)}
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <img src="/images/pix-solo.svg" alt="PIX" style={{ width: '32px', marginBottom: '8px' }} />
+          <div style={{ fontSize: '24px', fontWeight: 700, color: '#fe2b54' }}>
+            R$ {formatAmount(amount)}
+          </div>
         </div>
 
         {loading && (
-          <div className="pix-popup-loading">
-            <div className="pix-popup-spinner"></div>
-            <p>Gerando código PIX...</p>
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{
+              width: '24px',
+              height: '24px',
+              border: '3px solid #f1f1f1',
+              borderTop: '3px solid #fe2b54',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 12px',
+            }} />
+            <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Gerando código PIX...</p>
           </div>
         )}
 
         {error && (
-          <div className="pix-popup-error">
-            <p>{error}</p>
-            <button className="pix-popup-retry" onClick={() => window.location.reload()}>
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <p style={{ color: '#fe2b54', fontSize: '14px', margin: '0 0 12px' }}>{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              style={{
+                background: '#fe2b54',
+                color: '#fff',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '99px',
+                fontSize: '14px',
+                fontWeight: 500,
+                cursor: 'pointer',
+              }}
+            >
               Tentar novamente
             </button>
           </div>
@@ -140,27 +181,63 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
 
         {!loading && !error && pixCode && (
           <>
-            <div className="pix-popup-instructions">
-              <p>Copie o código abaixo e cole no app do seu banco:</p>
-            </div>
+            <p style={{ fontSize: '13px', color: '#666', textAlign: 'center', margin: '0 0 12px' }}>
+              Copie o código e cole no app do seu banco
+            </p>
 
-            <div className="pix-popup-code-container">
-              <textarea
-                className="pix-popup-code"
-                value={pixCode}
-                readOnly
-                rows={3}
-              />
-              <button 
-                className={`pix-popup-copy-btn ${copied ? 'copied' : ''}`}
-                onClick={handleCopy}
-              >
-                {copied ? '✓ Copiado!' : 'Copiar código'}
-              </button>
-            </div>
+            <textarea
+              readOnly
+              value={pixCode}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #e5e5e5',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontFamily: 'monospace',
+                resize: 'none',
+                backgroundColor: '#f9f9f9',
+                color: '#333',
+                boxSizing: 'border-box',
+              }}
+              rows={3}
+            />
 
-            <div className="pix-popup-status">
-              <div className={`pix-popup-status-indicator ${status.toLowerCase()}`}></div>
+            <button 
+              onClick={handleCopy}
+              style={{
+                width: '100%',
+                marginTop: '12px',
+                padding: '12px',
+                backgroundColor: copied ? '#22c55e' : '#fe2b54',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '99px',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'background-color 0.2s',
+              }}
+            >
+              {copied ? '✓ Copiado!' : 'Copiar código'}
+            </button>
+
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              marginTop: '16px',
+              fontSize: '12px',
+              color: '#888',
+            }}>
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: status === 'APPROVED' ? '#22c55e' : '#fbbf24',
+                animation: status === 'PENDING' ? 'pulse 1.5s infinite' : 'none',
+              }} />
               <span>
                 {status === 'PENDING' && 'Aguardando pagamento...'}
                 {status === 'APPROVED' && 'Pagamento confirmado!'}
@@ -168,13 +245,19 @@ const PixPaymentPopup = ({ amount, description, onSuccess, onClose }: PixPayment
                 {status === 'CANCELED' && 'Pagamento cancelado'}
               </span>
             </div>
-
-            <div className="pix-popup-footer">
-              <p>O pagamento será confirmado automaticamente.</p>
-            </div>
           </>
         )}
       </div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
     </div>
   );
 };
