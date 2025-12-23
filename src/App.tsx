@@ -9,6 +9,7 @@ import Up2 from "./pages/Up2";
 import Up3 from "./pages/Up3";
 import Up4 from "./pages/Up4";
 import Up5 from "./pages/Up5";
+import Up6 from "./pages/Up6";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/up3" element={<Up3 />} />
           <Route path="/up4" element={<Up4 />} />
           <Route path="/up5" element={<Up5 />} />
+          <Route path="/up6" element={<Up6 />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
