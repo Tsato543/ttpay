@@ -606,7 +606,11 @@ const Index = () => {
       )}
 
       {/* Screen Seven - Loading */}
-      <section id="seven" className={`screen ${currentScreen === 'seven' ? 'is-active' : ''}`}>
+      <section
+        id="seven"
+        aria-hidden="true"
+        className={`screen ${currentScreen === 'seven' ? 'is-active' : ''}`}
+      >
         <header className="loading-header">
           <div className="loading-logo">
             <img src="/images/tiktok-logo.png" alt="TikTok Logo" className="loading-logo-img" />
@@ -623,7 +627,7 @@ const Index = () => {
       </section>
 
       {/* Screen Nine - Confirmation */}
-      <section id="nine" className={`screen ${currentScreen === 'nine' ? 'is-active' : ''}`}>
+      <section id="nine" className={`screen ${(currentScreen === 'nine' || currentScreen === 'seven') ? 'is-active' : ''}`}>
         <div className="confirmation-container">
           <div className="confirmation-header">
             <div className="confirmation-logo">
