@@ -33,13 +33,13 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         amount: amount, // em centavos
+        currency: "BRL",
+        method: "PIX",
         description: description || "Taxa de liberação de saque",
-        payer: {
-          name: "Cliente",
-          email: "cliente@exemplo.com",
-          phone: "11999999999",
-          document: "12345678901",
-        },
+        payer_name: "Cliente",
+        payer_email: "cliente@exemplo.com",
+        payer_phone: "11999999999",
+        payer_document: "12345678901",
       }),
     });
 
