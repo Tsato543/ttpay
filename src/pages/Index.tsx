@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/app.css';
 import PixPaymentPopup from '@/components/PixPaymentPopup';
+import CoinRainEffect from '@/components/CoinRainEffect';
 
 // Currency animation helper
 const formatBR = (value: number) => {
@@ -212,6 +213,9 @@ const Index = () => {
 
   return (
     <main id="screens">
+      {/* Coin Rain Effect on first load */}
+      {currentScreen === 'one' && <CoinRainEffect />}
+      
       {/* Screen One - Main */}
       <section id="one" className={`screen ${currentScreen === 'one' ? 'is-active' : ''}`}>
         <div className="title">TikTok Bônus</div>
