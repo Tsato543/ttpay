@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PixPaymentPopup from '@/components/PixPaymentPopup';
+import { trackViewContent, trackClickButton } from '@/lib/tiktokPixel';
 import '../styles/app.css';
 
 const SALDO_ANTIGO = 2834.72;
@@ -18,6 +19,10 @@ const formatBR = (value: number) => {
 const Up4 = () => {
   const navigate = useNavigate();
   const [showPixPopup, setShowPixPopup] = useState(false);
+
+  useEffect(() => {
+    trackViewContent('Upgrade Premium', TAXA_UPGRADE);
+  }, []);
 
   const handlePaymentSuccess = () => {
     setShowPixPopup(false);
