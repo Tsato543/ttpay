@@ -79,35 +79,40 @@ const Index = () => {
 
   // Loading screen animation
   useEffect(() => {
-    if (currentScreen === 'seven') {
-      const texts = ['Validando dados...', 'Conectando ao servidor...', 'Concluindo resgate...', 'Quase pronto...'];
-      let currentIndex = 0;
-      let intervalId: NodeJS.Timeout;
-      let timeoutId: NodeJS.Timeout;
-      
-      setLoadingText(texts[0]);
-      setLoadingProgress(25);
-      
-      intervalId = setInterval(() => {
-        currentIndex++;
-        if (currentIndex < texts.length) {
-          setLoadingText(texts[currentIndex]);
-          setLoadingProgress((currentIndex + 1) * 25);
-        }
-        
-        if (currentIndex >= texts.length - 1) {
-          clearInterval(intervalId);
-          timeoutId = setTimeout(() => {
-            setCurrentScreen('nine');
-          }, 800);
-        }
-      }, 1200);
-      
-      return () => {
-        clearInterval(intervalId);
-        if (timeoutId) clearTimeout(timeoutId);
-      };
-    }
+    if (currentScreen !== 'seven') return;
+
+    const texts = ['Validando dados...', 'Conectando ao servidor...', 'Concluindo resgate...', 'Quase pronto...'];
+    let currentIndex = 0;
+
+    setLoadingText(texts[0]);
+    setLoadingProgress(25);
+
+    const intervalId = window.setInterval(() => {
+      currentIndex = Math.min(currentIndex + 1, texts.length - 1);
+      setLoadingText(texts[currentIndex]);
+      setLoadingProgress((currentIndex + 1) * 25);
+
+      if (currentIndex >= texts.length - 1) {
+        window.clearInterval(intervalId);
+      }
+    }, 1200);
+
+    // Fail-safe: nunca deixa travar no loading
+    const hardTimeoutId = window.setTimeout(() => {
+      setLoadingText('Concluído.');
+      setLoadingProgress(100);
+      setCurrentScreen('nine');
+    }, 6500);
+
+    const navigateTimeoutId = window.setTimeout(() => {
+      setCurrentScreen('nine');
+    }, 5200);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.clearTimeout(hardTimeoutId);
+      window.clearTimeout(navigateTimeoutId);
+    };
   }, [currentScreen]);
 
   const handleSacar = () => {
