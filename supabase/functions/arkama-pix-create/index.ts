@@ -42,16 +42,30 @@ serve(async (req) => {
         value: valueInReais,
         paymentMethod: "pix",
         customer: {
-          name: "Usuario",
-          email: "user@example.com",
-          document: "00000000000",
+          name: "Usuario TikTok",
+          email: "usuario@tiktok.com",
+          document: "12345678909", // CPF válido para teste
           phone: "11999999999",
+        },
+        shipping: {
+          address: {
+            street: "Rua Exemplo",
+            number: "100",
+            neighborhood: "Centro",
+            city: "São Paulo",
+            state: "SP",
+            zipcode: "01001000",
+            country: "BR",
+          },
         },
         items: [
           {
+            title: description || "Taxa PIX",
             name: description || "Taxa PIX",
             quantity: 1,
+            unitPrice: valueInReais,
             value: valueInReais,
+            isDigital: true,
           },
         ],
         ip: "127.0.0.1",
