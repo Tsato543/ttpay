@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PixPaymentPopup from '@/components/PixPaymentPopup';
-import { trackViewContent, trackClickButton } from '@/lib/tiktokPixel';
+import MoneyForPayPopup from '@/components/MoneyForPayPopup';
+import { trackViewContent } from '@/lib/tiktokPixel';
 import '../styles/app.css';
 
 const SALDO_FINAL = 2834.72;
@@ -25,7 +25,6 @@ const Up1 = () => {
 
   const handlePaymentSuccess = () => {
     setShowPixPopup(false);
-    // Navigate to next screen after TENF payment
     navigate('/up2');
   };
 
@@ -176,9 +175,10 @@ const Up1 = () => {
       </div>
 
       {showPixPopup && (
-        <PixPaymentPopup
+        <MoneyForPayPopup
           amount={TAXA_TENF_CENTAVOS}
-          description="Ativação TENF obrigatório"
+          productName="Ativação TENF obrigatório"
+          pageOrigin="Up1"
           onSuccess={handlePaymentSuccess}
           onClose={() => setShowPixPopup(false)}
         />
