@@ -2357,3 +2357,585 @@ input.nome-completo,
   color: #999;
   font-size: 12px;
 }
+
+/* ===== UPSELL PAGES STYLES ===== */
+
+.upsell-page {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding-bottom: 40px;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.upsell-page-with-footer {
+  padding-bottom: 120px;
+}
+
+.upsell-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  gap: 6px;
+}
+
+.upsell-logo {
+  height: 28px;
+}
+
+.upsell-card {
+  background-color: #fff;
+  border-radius: 12px;
+  margin: 0 12px 12px;
+  padding: 20px;
+}
+
+.upsell-card-center {
+  text-align: center;
+  padding: 24px 20px;
+}
+
+.upsell-card-success {
+  padding: 40px 20px;
+}
+
+.upsell-heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 16px;
+  line-height: 1.3;
+}
+
+.upsell-text {
+  font-size: 14px;
+  color: #000;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.upsell-text-muted {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.highlight-value {
+  color: #fe2b54;
+  font-weight: 600;
+}
+
+.text-bold {
+  font-weight: 600;
+  color: #000;
+}
+
+.info-box {
+  background-color: #f8f9fb;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 20px;
+}
+
+.info-box-detailed {
+  margin-bottom: 20px;
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.info-header-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #000;
+}
+
+.info-text {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.info-text:last-child {
+  margin-bottom: 0;
+}
+
+.upsell-subtitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 12px;
+}
+
+.upsell-list {
+  margin: 0 0 20px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.upsell-list-item {
+  font-size: 14px;
+  color: #444;
+  padding: 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.list-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #fe2b54;
+  flex-shrink: 0;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.price-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+}
+
+.price-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* CTA Buttons */
+.cta-button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 99px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cta-button:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.cta-primary {
+  background-color: #fe2b54;
+  color: #fff;
+}
+
+.cta-success {
+  background-color: #16a34a;
+  color: #fff;
+  padding: 16px;
+}
+
+.cta-rounded {
+  border-radius: 12px;
+}
+
+.cta-footnote {
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+.cta-success-note {
+  font-size: 12px;
+  color: #16a34a;
+  text-align: center;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+/* Fixed Footer */
+.fixed-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background-color: #fff;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+  z-index: 100;
+}
+
+/* Status Badges */
+.badge-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-neutral {
+  background-color: #f1f1f1;
+  color: #000;
+}
+
+.status-warning {
+  background-color: #dcfce7;
+  color: #16a34a;
+  border-radius: 99px;
+}
+
+/* Saldo Display */
+.saldo-label-small {
+  font-size: 12px;
+  color: #666;
+  margin: 0 0 8px;
+  letter-spacing: 1px;
+}
+
+.saldo-big {
+  font-size: 32px;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 16px;
+}
+
+/* Alert Boxes */
+.alert-box {
+  padding: 14px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 20px;
+}
+
+.alert-warning {
+  background-color: #fefce8;
+  border-left: 4px solid #eab308;
+}
+
+.alert-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 8px;
+}
+
+.alert-text {
+  font-size: 13px;
+  color: #444;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.alert-heading {
+  font-size: 20px;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 16px;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+/* Summary Rows */
+.section-label {
+  font-size: 11px;
+  color: #888;
+  margin: 0 0 12px;
+  letter-spacing: 0.5px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.summary-row-border {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.summary-row-bg {
+  background-color: #f8f9fb;
+  padding: 14px;
+  border-radius: 8px;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #444;
+}
+
+.summary-label-bold {
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+}
+
+.summary-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.summary-value-orange {
+  color: #f97316;
+}
+
+.summary-value-big {
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* Success Box */
+.success-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: #dcfce7;
+  padding: 14px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.success-icon {
+  color: #16a34a;
+  font-size: 16px;
+}
+
+.success-text {
+  font-size: 13px;
+  color: #166534;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Partner Logo */
+.logo-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.partner-logo {
+  height: 32px;
+}
+
+/* Benefits List */
+.benefits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: #f8f9fb;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #444;
+}
+
+.benefit-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+/* Flag emoji */
+.flag-emoji {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+/* Check List */
+.check-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  color: #000;
+  line-height: 1.5;
+}
+
+.check-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+  font-size: 14px;
+}
+
+/* Card Section Title */
+.card-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 16px;
+  text-align: center;
+}
+
+/* Math Rows */
+.math-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 14px;
+}
+
+.math-row-border {
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.math-row-highlight {
+  background-color: #fffbeb;
+  padding: 14px;
+  border-radius: 8px;
+}
+
+.math-row-total {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.math-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
+}
+
+.math-value-orange {
+  color: #d97706;
+}
+
+.math-value-red {
+  color: #ef4444;
+}
+
+.math-label-bold {
+  font-size: 16px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* Saldo Converted */
+.saldo-converted {
+  text-align: right;
+}
+
+.currency-small {
+  font-size: 14px;
+  color: #000;
+}
+
+.saldo-int {
+  font-size: 32px;
+  font-weight: 700;
+  color: #000;
+  margin-left: 4px;
+}
+
+.saldo-dec {
+  font-size: 20px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* Success Circle */
+.success-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.success-heading {
+  font-size: 20px;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 12px;
+}
+
+.success-message {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Button touch feedback */
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .upsell-heading {
+    font-size: 20px;
+  }
+  
+  .saldo-big {
+    font-size: 28px;
+  }
+  
+  .saldo-int {
+    font-size: 28px;
+  }
+  
+  .saldo-dec {
+    font-size: 18px;
+  }
+}

