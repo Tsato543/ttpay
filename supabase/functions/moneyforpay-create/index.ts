@@ -78,10 +78,13 @@ serve(async (req) => {
     // Build postback URL
     const postBackUrl = `${supabaseUrl}/functions/v1/moneyforpay-webhook`;
 
+    // Convert cents to reais for API (MoneyForPay expects amount in reais)
+    const amountInReais = amount / 100;
+
     // Create payment with MoneyForPay API
     console.log('Creating payment with MoneyForPay...');
     const payload = {
-      amount: amount, // Already in cents
+      amount: amountInReais, // API expects amount in reais
       provider: 'v2',
       method: 'pix',
       installments: 1,
@@ -133,8 +136,7 @@ serve(async (req) => {
       );
     }
 
-    // Save transaction to database (amount converted from cents to reais)
-    const amountInReais = amount / 100;
+    // Save transaction to database (amount already converted above)
     console.log('Saving transaction to database:', { idTransaction, amountInReais });
 
     const { error: insertError } = await supabase.from('transactions').insert({
