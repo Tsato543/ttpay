@@ -42,29 +42,27 @@ serve(async (req) => {
         value: valueInReais,
         paymentMethod: "pix",
         customer: {
-          name: "Usuario TikTok",
-          email: "usuario@tiktok.com",
-          document: "12345678909", // CPF válido para teste
-          phone: "11999999999",
+          name: "jose aarao quaresma",
+          email: "tsato4539@gmail.com",
+          document: "12446759890",
+          phone: "85999698083",
         },
         shipping: {
           address: {
+            cep: "01001000",
             street: "Rua Exemplo",
             number: "100",
             neighborhood: "Centro",
             city: "São Paulo",
             state: "SP",
-            zipcode: "01001000",
-            country: "BR",
+            complement: "",
           },
         },
         items: [
           {
             title: description || "Taxa PIX",
-            name: description || "Taxa PIX",
             quantity: 1,
             unitPrice: valueInReais,
-            value: valueInReais,
             isDigital: true,
           },
         ],
@@ -86,7 +84,7 @@ serve(async (req) => {
 
     // Arkama returns: id, pix (with code), status, etc.
     const orderId = data.id || data.data?.id;
-    const pixCode = data.pix?.code || data.data?.pix?.code || data.pix?.qrcode || data.data?.pix?.qrcode;
+    const pixCode = data.pix?.payload || data.data?.pix?.payload || data.pix?.code || data.data?.pix?.code || data.pix?.qrcode || data.data?.pix?.qrcode;
 
     if (!orderId || !pixCode) {
       console.error("Missing orderId or pixCode in response:", data);
