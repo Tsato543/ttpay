@@ -28,7 +28,7 @@ const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amou
         setLoading(true);
         setError(null);
 
-        const { data, error: fnError } = await supabase.functions.invoke('arkama-pix-create', {
+        const { data, error: fnError } = await supabase.functions.invoke('zyropay-pix-create', {
           body: { amount, description },
         });
 
@@ -71,7 +71,7 @@ const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amou
       try {
         console.log('Checking payment status...');
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/arkama-pix-status?id=${paymentId}`,
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/zyropay-pix-status?id=${paymentId}`,
           {
             method: 'GET',
             headers: {
