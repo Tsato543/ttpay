@@ -81,7 +81,7 @@ serve(async (req) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               title: "💰 Venda Aprovada!",
-              text: `Produto: ${transactionData?.product_name || 'N/A'}\nValor: ${valorFormatado}`,
+              text: valorFormatado,
             }),
           });
           console.log("Pushcut notification sent successfully");
