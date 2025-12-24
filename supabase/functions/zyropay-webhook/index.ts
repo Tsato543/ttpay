@@ -52,19 +52,43 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Update transaction status in database
-    const { error: updateError } = await supabase
+    const { data: transactionData, error: updateError } = await supabase
       .from("transactions")
       .update({
         status: "APPROVED",
         paid_at: confirmationDate || new Date().toISOString(),
       })
-      .eq("id_transaction", movId);
+      .eq("id_transaction", movId)
+      .select()
+      .single();
 
     if (updateError) {
       console.error("Error updating transaction:", updateError);
-      // Still return success to webhook sender
     } else {
       console.log("Transaction updated to APPROVED:", movId);
+
+      // Send Pushcut notification
+      const pushcutUrl = Deno.env.get("PUSHCUT_WEBHOOK_URL");
+      if (pushcutUrl) {
+        try {
+          const valorFormatado = (transactionData?.amount / 100).toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          });
+          
+          await fetch(pushcutUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: "💰 Venda Aprovada!",
+              text: `Produto: ${transactionData?.product_name || 'N/A'}\nValor: ${valorFormatado}`,
+            }),
+          });
+          console.log("Pushcut notification sent successfully");
+        } catch (pushcutError) {
+          console.error("Error sending Pushcut notification:", pushcutError);
+        }
+      }
     }
 
     return new Response(
