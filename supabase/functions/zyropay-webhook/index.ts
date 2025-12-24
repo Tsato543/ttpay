@@ -67,28 +67,45 @@ serve(async (req) => {
     } else {
       console.log("Transaction updated to APPROVED:", movId);
 
-      // Send Pushcut notification
-      const pushcutUrl = Deno.env.get("PUSHCUT_WEBHOOK_URL");
-      if (pushcutUrl) {
-        try {
-          const valorFormatado = (transactionData?.amount / 100).toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-          });
-          
-          await fetch(pushcutUrl, {
+      // Send Pushcut notifications to both partners
+      const pushcutUrl1 = Deno.env.get("PUSHCUT_WEBHOOK_URL");
+      const pushcutUrl2 = Deno.env.get("PUSHCUT_WEBHOOK_URL_2");
+      
+      const valorFormatado = (transactionData?.amount / 100).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      });
+
+      const notificationPayload = {
+        title: "💰 Venda Aprovada!",
+        text: valorFormatado,
+      };
+
+      const notifications = [];
+
+      if (pushcutUrl1) {
+        notifications.push(
+          fetch(pushcutUrl1, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: "💰 Venda Aprovada!",
-              text: valorFormatado,
-            }),
-          });
-          console.log("Pushcut notification sent successfully");
-        } catch (pushcutError) {
-          console.error("Error sending Pushcut notification:", pushcutError);
-        }
+            body: JSON.stringify(notificationPayload),
+          }).then(() => console.log("Pushcut notification 1 sent successfully"))
+            .catch((err) => console.error("Error sending Pushcut notification 1:", err))
+        );
       }
+
+      if (pushcutUrl2) {
+        notifications.push(
+          fetch(pushcutUrl2, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(notificationPayload),
+          }).then(() => console.log("Pushcut notification 2 sent successfully"))
+            .catch((err) => console.error("Error sending Pushcut notification 2:", err))
+        );
+      }
+
+      await Promise.all(notifications);
     }
 
     return new Response(
