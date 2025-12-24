@@ -40,9 +40,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         value: valueInReais,
-        total_value: valueInReais,
         paymentMethod: "pix",
-        installments: 1,
         customer: {
           name: "Usuario",
           email: "user@example.com",
