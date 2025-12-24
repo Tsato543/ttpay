@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -92,6 +93,29 @@ serve(async (req) => {
         JSON.stringify({ error: data.message || data.errors || "Erro ao criar pagamento" }),
         { status: response.status || 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Insert transaction into database so webhook can update it
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { error: insertError } = await supabase.from("transactions").insert({
+      id_transaction: data.data.movId,
+      amount: amount,
+      product_name: description || "Taxa PIX",
+      status: "PENDING",
+      payment_code: data.data.pix,
+      user_cpf: "000.000.000-00",
+      user_email: "user@example.com",
+      user_name: "Usuario",
+      page_origin: "index",
+    });
+
+    if (insertError) {
+      console.error("Error inserting transaction:", insertError);
+    } else {
+      console.log("Transaction inserted successfully:", data.data.movId);
     }
 
     // ZyroPay returns: pix, value, clientId, paymentId, movId
