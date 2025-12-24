@@ -46,11 +46,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Convert cents to reais for API + DB comparisons
-    const amountInReais = Number((amount / 100).toFixed(2));
-
-    // Check for existing pending transaction for same CPF + productName + amount
-    // (prevents reusing an old PIX code with a different value)
+    // Check for existing pending transaction for same CPF + productName
     console.log('Checking for existing pending transaction...');
     const { data: existingTransaction, error: findError } = await supabase
       .from('transactions')
@@ -58,7 +54,6 @@ serve(async (req) => {
       .eq('user_cpf', customer.document)
       .eq('product_name', productName)
       .eq('status', 'waiting_payment')
-      .eq('amount', amountInReais)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -67,8 +62,8 @@ serve(async (req) => {
       console.error('Error checking existing transaction:', findError);
     }
 
-    if (existingTransaction?.payment_code) {
-      console.log('Found existing pending transaction (same amount):', existingTransaction.id_transaction);
+    if (existingTransaction) {
+      console.log('Found existing pending transaction:', existingTransaction.id_transaction);
       return new Response(
         JSON.stringify({
           idTransaction: existingTransaction.id_transaction,
@@ -83,12 +78,10 @@ serve(async (req) => {
     // Build postback URL
     const postBackUrl = `${supabaseUrl}/functions/v1/moneyforpay-webhook`;
 
-    // amountInReais already computed above (from cents)
-
     // Create payment with MoneyForPay API
     console.log('Creating payment with MoneyForPay...');
     const payload = {
-      amount: amountInReais, // API expects amount in reais
+      amount: amount, // Already in cents
       provider: 'v2',
       method: 'pix',
       installments: 1,
@@ -140,7 +133,8 @@ serve(async (req) => {
       );
     }
 
-    // Save transaction to database (amount already converted above)
+    // Save transaction to database (amount converted from cents to reais)
+    const amountInReais = amount / 100;
     console.log('Saving transaction to database:', { idTransaction, amountInReais });
 
     const { error: insertError } = await supabase.from('transactions').insert({
