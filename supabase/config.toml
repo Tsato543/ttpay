@@ -34,3 +34,12 @@ verify_jwt = false
 
 [functions.zyropay-webhook]
 verify_jwt = false
+
+[functions.arkama-pix-create]
+verify_jwt = false
+
+[functions.arkama-pix-status]
+verify_jwt = false
+
+[functions.arkama-webhook]
+verify_jwt = false
