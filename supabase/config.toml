@@ -25,3 +25,12 @@ verify_jwt = false
 
 [functions.bravive-pix-status]
 verify_jwt = false
+
+[functions.moneyforpay-create]
+verify_jwt = false
+
+[functions.moneyforpay-status]
+verify_jwt = false
+
+[functions.moneyforpay-webhook]
+verify_jwt = false

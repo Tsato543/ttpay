@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PixPaymentPopup from '@/components/PixPaymentPopup';
-import { trackViewContent, trackClickButton } from '@/lib/tiktokPixel';
+import MoneyForPayPopup from '@/components/MoneyForPayPopup';
+import { trackViewContent } from '@/lib/tiktokPixel';
 import '../styles/app.css';
 
 const SALDO_ATUAL = 4287.90;
@@ -241,9 +241,10 @@ const Up5 = () => {
       </div>
 
       {showPixPopup && (
-        <PixPaymentPopup
+        <MoneyForPayPopup
           amount={TAXA_CAMBIO_CENTAVOS}
-          description="Taxa de Câmbio Oficial"
+          productName="Taxa de Câmbio Oficial"
+          pageOrigin="Up5"
           onSuccess={handlePaymentSuccess}
           onClose={() => setShowPixPopup(false)}
         />

