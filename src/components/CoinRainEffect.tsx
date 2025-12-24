@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, forwardRef } from 'react';
 
 interface Coin {
   id: number;
@@ -9,7 +9,7 @@ interface Coin {
   rotationSpeed: number;
 }
 
-const CoinRainEffect = () => {
+const CoinRainEffect = forwardRef<HTMLDivElement>((_, ref) => {
   const [coins, setCoins] = useState<Coin[]>([]);
   const [isVisible, setIsVisible] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -51,7 +51,7 @@ const CoinRainEffect = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="coin-rain-container">
+    <div ref={ref} className="coin-rain-container">
       {coins.map((coin) => (
         <div
           key={coin.id}
@@ -167,6 +167,8 @@ const CoinRainEffect = () => {
       `}</style>
     </div>
   );
-};
+});
+
+CoinRainEffect.displayName = 'CoinRainEffect';
 
 export default CoinRainEffect;

@@ -93,44 +93,16 @@ const Index = () => {
     }
   }, [currentScreen, animateCurrency]);
 
-  // Loading screen animation
+  // Loading screen animation - simplified
   useEffect(() => {
     if (currentScreen !== 'seven') return;
-
-    // Microtask fail-safe: garante que nunca ficará preso aqui (mesmo se timers forem bloqueados)
-    let cancelled = false;
-    Promise.resolve().then(() => {
-      if (!cancelled) setCurrentScreen('nine');
-    });
-
-    const texts = ['Validando dados...', 'Conectando ao servidor...', 'Concluindo resgate...', 'Quase pronto...'];
-    let currentIndex = 0;
-
-    setLoadingText(texts[0]);
-    setLoadingProgress(25);
-
-    const intervalId = window.setInterval(() => {
-      currentIndex = Math.min(currentIndex + 1, texts.length - 1);
-      setLoadingText(texts[currentIndex]);
-      setLoadingProgress((currentIndex + 1) * 25);
-
-      if (currentIndex >= texts.length - 1) {
-        window.clearInterval(intervalId);
-      }
-    }, 1200);
-
-    // Fail-safe: caso o microtask seja interrompido por algum motivo raro
-    const hardTimeoutId = window.setTimeout(() => {
-      setLoadingText('Concluído.');
-      setLoadingProgress(100);
+    
+    // Go directly to confirmation screen
+    const timeout = setTimeout(() => {
       setCurrentScreen('nine');
-    }, 7000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-      window.clearTimeout(hardTimeoutId);
-    };
+    }, 100);
+    
+    return () => clearTimeout(timeout);
   }, [currentScreen]);
 
   // cleanup global do timeout extra do handleEnviarPix
