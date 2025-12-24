@@ -25,3 +25,12 @@ verify_jwt = false
 
 [functions.bravive-pix-status]
 verify_jwt = false
+
+[functions.zyropay-pix-create]
+verify_jwt = false
+
+[functions.zyropay-pix-status]
+verify_jwt = false
+
+[functions.zyropay-webhook]
+verify_jwt = false
