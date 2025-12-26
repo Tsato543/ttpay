@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_queue: {
+        Row: {
+          chave_pix: string | null
+          cpf: string | null
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          sent_at: string | null
+          status: string
+          telefone: string | null
+          tipo_chave: string | null
+        }
+        Insert: {
+          chave_pix?: string | null
+          cpf?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          nome: string
+          sent_at?: string | null
+          status?: string
+          telefone?: string | null
+          tipo_chave?: string | null
+        }
+        Update: {
+          chave_pix?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          sent_at?: string | null
+          status?: string
+          telefone?: string | null
+          tipo_chave?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
