@@ -6,6 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const ARKAMA_BASE_URL = "https://app.arkama.com.br/api/v1";
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -36,17 +38,26 @@ serve(async (req) => {
     // Generate external reference
     const externalRef = `PIX-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
-    // Arkama API - Create PIX payment
-    const arkamaResponse = await fetch("https://api.arkama.app/v1/pix/qrcode", {
+    // Arkama API - Create order with PIX payment
+    const arkamaResponse = await fetch(`${ARKAMA_BASE_URL}/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json",
         "Authorization": `Bearer ${apiToken}`,
       },
       body: JSON.stringify({
-        amount: amount, // Amount in cents
-        external_reference: externalRef,
-        description: description || "Pagamento PIX",
+        value: amount / 100, // Convert cents to reais
+        paymentMethod: "PIX",
+        externalRef: externalRef,
+        customer: {
+          name: "Cliente",
+          email: "cliente@email.com",
+        },
+        utms: {
+          source: "lovable",
+          campaign: description || "Pagamento PIX",
+        },
       }),
     });
 
@@ -77,10 +88,10 @@ serve(async (req) => {
       amount: amount,
       product_name: description || "Pagamento PIX",
       status: "PENDING",
-      user_name: "Cliente",
-      user_email: "cliente@email.com",
-      user_cpf: "00000000000",
-      payment_code: arkamaData.qr_code || arkamaData.pix_code || arkamaData.emv,
+      user_name: arkamaData.customer?.name || "Cliente",
+      user_email: arkamaData.customer?.email || "cliente@email.com",
+      user_cpf: arkamaData.customer?.document || "00000000000",
+      payment_code: arkamaData.pix?.payload,
       page_origin: "arkama",
     });
 
@@ -91,9 +102,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         id: transactionId,
-        pix_code: arkamaData.qr_code || arkamaData.pix_code || arkamaData.emv,
-        qr_code_base64: arkamaData.qr_code_base64,
-        status: "PENDING",
+        pix_code: arkamaData.pix?.payload,
+        status: arkamaData.status || "PENDING",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
