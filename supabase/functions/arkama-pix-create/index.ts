@@ -65,16 +65,16 @@ serve(async (req) => {
         },
       ],
 
-      // Required structure (even for digital goods)
+      // Required structure (even for digital goods) - Arkama expects strings (not null)
       shipping: {
         address: {
-          cep: null,
-          city: null,
-          state: null,
-          street: null,
-          neighborhood: null,
-          number: null,
-          complement: null,
+          cep: "00000000",
+          city: "Sao Paulo",
+          state: "SP",
+          street: "Rua Exemplo",
+          neighborhood: "Centro",
+          number: "0",
+          complement: "",
         },
       },
 
