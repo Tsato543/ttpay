@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PixPaymentPopup from '@/components/PixPaymentPopup';
+import MangofyPixPopup from '@/components/MangofyPixPopup';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
 import '../styles/app.css';
@@ -91,7 +91,7 @@ const Up1 = () => {
         </div>
 
         {showPixPopup && (
-          <PixPaymentPopup
+          <MangofyPixPopup
             amount={TAXA_TENF_CENTAVOS}
             description="Ativação TENF obrigatório"
             onSuccess={handlePaymentSuccess}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PixPaymentPopup from '@/components/PixPaymentPopup';
+import MangofyPixPopup from '@/components/MangofyPixPopup';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
 import '../styles/app.css';
@@ -117,7 +117,7 @@ const Up4 = () => {
         </div>
 
         {showPixPopup && (
-          <PixPaymentPopup
+          <MangofyPixPopup
             amount={TAXA_UPGRADE_CENTAVOS}
             description="Upgrade Premium TikTok"
             onSuccess={handlePaymentSuccess}
