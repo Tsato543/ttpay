@@ -47,10 +47,31 @@ serve(async (req) => {
 
     let sentCount = 0;
     let errorCount = 0;
+    let skippedCount = 0;
 
     for (const emailRecord of pendingEmails) {
       try {
-        console.log(`Sending email to: ${emailRecord.email}`);
+        // Check if user has paid the R$37.37 fee (3737 centavos)
+        const { data: paidTransaction, error: txError } = await supabase
+          .from("transactions")
+          .select("id, status, amount")
+          .eq("user_email", emailRecord.email)
+          .eq("amount", 37.37)
+          .in("status", ["paid", "APPROVED", "approved", "PAID"])
+          .limit(1);
+
+        if (txError) {
+          console.error(`Error checking payment for ${emailRecord.email}:`, txError);
+        }
+
+        // Skip if no payment found
+        if (!paidTransaction || paidTransaction.length === 0) {
+          console.log(`Skipping ${emailRecord.email} - no payment of R$37.37 found`);
+          skippedCount++;
+          continue;
+        }
+
+        console.log(`Payment verified for ${emailRecord.email}, sending email...`);
 
         // Send email using Resend API directly
         const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -137,14 +158,15 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Completed: ${sentCount} sent, ${errorCount} failed`);
+    console.log(`Completed: ${sentCount} sent, ${errorCount} failed, ${skippedCount} skipped (no payment)`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: `Processed ${pendingEmails.length} emails`,
         sent: sentCount,
-        failed: errorCount 
+        failed: errorCount,
+        skipped: skippedCount
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
