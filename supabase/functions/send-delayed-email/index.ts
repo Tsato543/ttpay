@@ -21,15 +21,13 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Find emails that are pending and were created more than 10 minutes ago
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-    
+    // Find emails that are pending and have a matching paid transaction
+    // First, get all pending emails
     const { data: pendingEmails, error: fetchError } = await supabase
       .from("email_queue")
       .select("*")
       .eq("status", "pending")
-      .lt("created_at", tenMinutesAgo)
-      .limit(10);
+      .limit(50);
 
     if (fetchError) {
       console.error("Error fetching pending emails:", fetchError);
