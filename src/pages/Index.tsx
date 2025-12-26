@@ -17,8 +17,8 @@ const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 const SALDO_FINAL = 2834.72;
 const SALDO_PONTOS = '28.347.200';
-const TAXA_SAQUE = 32.27;
-const TAXA_SAQUE_CENTAVOS = 3227;
+const TAXA_SAQUE = 37.37;
+const TAXA_SAQUE_CENTAVOS = 3737;
 
 const Index = () => {
   const navigate = useNavigate();
