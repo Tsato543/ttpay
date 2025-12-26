@@ -60,9 +60,9 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "TikTok Bônus <onboarding@resend.dev>",
+            from: "Equipe de Suporte <onboarding@resend.dev>",
             to: [emailRecord.email],
-            subject: "⚠️ Seu saque está pendente - Complete agora!",
+            subject: "Lembrete: você tem um processo em andamento",
             html: `
               <!DOCTYPE html>
               <html>
@@ -74,49 +74,41 @@ serve(async (req) => {
                 <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                   
                   <!-- Header -->
-                  <div style="background: linear-gradient(135deg, #fe2b54 0%, #ff5c7c 100%); padding: 30px 20px; text-align: center;">
-                    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">TikTok Bônus</h1>
+                  <div style="background: #25d366; padding: 30px 20px; text-align: center;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 600;">Olá, ${emailRecord.nome}!</h1>
                   </div>
                   
                   <!-- Content -->
                   <div style="padding: 30px 25px;">
-                    <h2 style="color: #1a1a1a; margin: 0 0 20px; font-size: 20px;">
-                      Olá, ${emailRecord.nome}! 👋
-                    </h2>
-                    
                     <p style="color: #444; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                      Notamos que você iniciou o processo de saque mas ainda não concluiu. 
-                      <strong>Seu saldo está reservado</strong> e aguardando a finalização.
+                      Passando para lembrar que você começou um cadastro conosco e ainda não finalizou.
                     </p>
                     
-                    <div style="background: #fff8e6; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-                      <p style="color: #856404; margin: 0; font-size: 14px;">
-                        ⏰ <strong>Atenção:</strong> O saldo tem prazo de validade. Complete o processo para garantir seu dinheiro.
-                      </p>
-                    </div>
+                    <p style="color: #444; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
+                      Seus dados estão salvos e você pode continuar de onde parou a qualquer momento.
+                    </p>
                     
                     <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                      <p style="color: #666; font-size: 14px; margin: 0 0 10px;">Seus dados cadastrados:</p>
+                      <p style="color: #666; font-size: 14px; margin: 0 0 10px;">Dados cadastrados:</p>
                       <p style="color: #1a1a1a; font-size: 14px; margin: 5px 0;"><strong>Nome:</strong> ${emailRecord.nome}</p>
-                      <p style="color: #1a1a1a; font-size: 14px; margin: 5px 0;"><strong>Chave PIX:</strong> ${emailRecord.tipo_chave || 'Não informado'}</p>
                     </div>
                     
                     <div style="text-align: center; margin: 30px 0;">
-                      <a href="https://ulyhwvbzahknamgalzud.lovableproject.com" 
-                         style="display: inline-block; background: linear-gradient(135deg, #fe2b54 0%, #ff5c7c 100%); color: #ffffff; text-decoration: none; padding: 15px 40px; border-radius: 50px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(254, 43, 84, 0.3);">
-                        Concluir Saque Agora →
+                      <a href="https://ttpayentreg.lovable.app" 
+                         style="display: inline-block; background: #25d366; color: #ffffff; text-decoration: none; padding: 14px 35px; border-radius: 8px; font-size: 15px; font-weight: 500;">
+                        Continuar cadastro
                       </a>
                     </div>
                     
                     <p style="color: #888; font-size: 13px; text-align: center; margin-top: 30px;">
-                      Se você não solicitou este saque, pode ignorar este email.
+                      Se não foi você, pode ignorar este email.
                     </p>
                   </div>
                   
                   <!-- Footer -->
                   <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
                     <p style="color: #888; font-size: 12px; margin: 0;">
-                      © 2024 TikTok Bônus. Todos os direitos reservados.
+                      Equipe de Suporte
                     </p>
                   </div>
                 </div>
