@@ -37,6 +37,37 @@ serve(async (req) => {
       phone: customer?.phone || "11999999999",
     };
 
+    // Build request body according to Arkama API format
+    const requestBody = {
+      value: valueInReais,
+      paymentMethod: "pix",
+      installments: 1,
+      customer: customerData,
+      items: [
+        {
+          title: description || "Taxa PIX",
+          quantity: 1,
+          unitPrice: valueInReais,
+          isDigital: true,
+        },
+      ],
+      shipping: {
+        address: {
+          cep: "01310100",
+          city: "Sao Paulo",
+          state: "SP",
+          street: "Avenida Paulista",
+          neighborhood: "Bela Vista",
+          number: "1000",
+          complement: "",
+        },
+      },
+      ip: "127.0.0.1",
+      externalRef: externalRef,
+    };
+
+    console.log("Arkama request body:", JSON.stringify(requestBody));
+
     // Create order with Arkama API
     const response = await fetch(`${ARKAMA_BASE_URL}/orders`, {
       method: "POST",
@@ -46,21 +77,7 @@ serve(async (req) => {
         "User-Agent": "TikTokBonus",
         "accept": "application/json",
       },
-      body: JSON.stringify({
-        value: valueInReais,
-        paymentMethod: "pix",
-        installments: 1,
-        customer: customerData,
-        items: [
-          {
-            name: description || "Taxa PIX",
-            quantity: 1,
-            value: valueInReais,
-          },
-        ],
-        ip: "127.0.0.1",
-        externalRef: externalRef,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     const data = await response.json();
