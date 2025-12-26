@@ -29,23 +29,45 @@ serve(async (req) => {
     }
 
     // Check payment status via Mangofy API
-    // Headers: Authorization (API Key without Bearer), Store-Code
-    const response = await fetch(`https://checkout.mangofy.com.br/api/v1/payment/${paymentCode}`, {
-      method: "GET",
-      headers: {
-        "Authorization": apiKey,
-        "Store-Code": storeCode,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-    });
+    // Docs examples show Authorization as raw API key; we also try Bearer for compatibility.
+    const callMangofy = async (authorizationValue: string, mode: "raw" | "bearer") => {
+      const res = await fetch(`https://checkout.mangofy.com.br/api/v1/payment/${paymentCode}`, {
+        method: "GET",
+        headers: {
+          Authorization: authorizationValue,
+          "Store-Code": storeCode,
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      });
 
-    const data = await response.json();
-    console.log("Mangofy status response:", JSON.stringify(data));
+      let json: any = null;
+      try {
+        json = await res.json();
+      } catch {
+        // ignore
+      }
 
-    if (!response.ok) {
+      console.log("Mangofy status response meta:", JSON.stringify({ status: res.status, ok: res.ok, mode }));
+      if (json) console.log("Mangofy status response:", JSON.stringify(json));
+
+      return { res, json, mode };
+    };
+
+    let attempt = await callMangofy(apiKey, "raw");
+
+    if (!attempt.res.ok && (attempt.res.status === 401 || attempt.res.status === 403 || attempt.json?.error)) {
+      const errText = String(attempt.json?.error || attempt.json?.message || "");
+      if (errText.toLowerCase().includes("inválid") || errText.toLowerCase().includes("inval") || errText.toLowerCase().includes("autoriza")) {
+        attempt = await callMangofy(`Bearer ${apiKey}`, "bearer");
+      }
+    }
+
+    const data = attempt.json;
+
+    if (!attempt.res.ok) {
       console.error("Mangofy error:", data);
-      throw new Error(data.message || data.error || "Failed to check payment status");
+      throw new Error(data?.message || data?.error || "Failed to check payment status");
     }
 
     // Map Mangofy status to our status format
