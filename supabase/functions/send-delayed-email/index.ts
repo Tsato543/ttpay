@@ -70,45 +70,41 @@ serve(async (req) => {
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
               </head>
-              <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
-                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+              <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a1a;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
                   
                   <!-- Header -->
-                  <div style="background: #25d366; padding: 30px 20px; text-align: center;">
-                    <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 600;">Olá, ${emailRecord.nome}!</h1>
+                  <div style="background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); padding: 40px 20px; text-align: center;">
+                    <h1 style="color: #ffffff; margin: 0 0 8px 0; font-size: 26px; font-weight: 600;">Parabéns, ${emailRecord.nome}!</h1>
+                    <p style="color: #E91E63; margin: 0; font-size: 16px; font-weight: 500;">Sua conta foi aprovada</p>
                   </div>
                   
                   <!-- Content -->
-                  <div style="padding: 30px 25px;">
-                    <p style="color: #444; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                      Passando para lembrar que você começou um cadastro conosco e ainda não finalizou.
+                  <div style="padding: 35px 30px;">
+                    <p style="color: #333; font-size: 16px; line-height: 1.7; margin: 0 0 20px;">
+                      Analisamos seu perfil e temos uma boa notícia: você foi selecionado(a) para acessar nossa plataforma exclusiva.
                     </p>
                     
-                    <p style="color: #444; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                      Seus dados estão salvos e você pode continuar de onde parou a qualquer momento.
+                    <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 30px;">
+                      Clique no botão abaixo para acessar sua conta e começar a aproveitar todos os benefícios.
                     </p>
                     
-                    <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                      <p style="color: #666; font-size: 14px; margin: 0 0 10px;">Dados cadastrados:</p>
-                      <p style="color: #1a1a1a; font-size: 14px; margin: 5px 0;"><strong>Nome:</strong> ${emailRecord.nome}</p>
-                    </div>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
+                    <div style="text-align: center; margin: 35px 0;">
                       <a href="https://ttpayentreg.lovable.app" 
-                         style="display: inline-block; background: #25d366; color: #ffffff; text-decoration: none; padding: 14px 35px; border-radius: 8px; font-size: 15px; font-weight: 500;">
-                        Continuar cadastro
+                         style="display: inline-block; background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%); color: #ffffff; text-decoration: none; padding: 16px 50px; border-radius: 30px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4);">
+                        Acessar Minha Conta
                       </a>
                     </div>
                     
-                    <p style="color: #888; font-size: 13px; text-align: center; margin-top: 30px;">
-                      Se não foi você, pode ignorar este email.
+                    <p style="color: #888; font-size: 13px; text-align: center; margin-top: 30px; line-height: 1.5;">
+                      Guarde este email. Você receberá mais informações em breve.
                     </p>
                   </div>
                   
                   <!-- Footer -->
                   <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
-                    <p style="color: #888; font-size: 12px; margin: 0;">
-                      Equipe de Suporte
+                    <p style="color: #999; font-size: 12px; margin: 0;">
+                      Você recebeu este email porque se cadastrou em nossa plataforma.
                     </p>
                   </div>
                 </div>
