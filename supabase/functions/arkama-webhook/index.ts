@@ -14,32 +14,34 @@ serve(async (req) => {
 
   try {
     const payload = await req.json();
-    console.log("ZyroPay webhook received:", JSON.stringify(payload));
+    console.log("Arkama webhook received:", JSON.stringify(payload));
 
-    // ZyroPay PIX IN webhook payload:
+    // Arkama webhook payload format 2.0.0:
     // {
-    //   "movId": "...",
-    //   "paymentId": "...",
-    //   "value": "1",
-    //   "confirmationDate": "2025-02-24T10:44:37-03:00",
-    //   "externalId": "...",
-    //   "type": "PixIn",
-    //   "e2e": "...",
-    //   "status": "CONFIRMED"
+    //   "id": "order_id",
+    //   "status": "PAID" | "PENDING" | "CANCELED" | "REFUSED",
+    //   "externalRef": "...",
+    //   "value": 10.00,
+    //   ...
     // }
 
-    const { movId, paymentId, value, confirmationDate, externalId, type, status } = payload;
+    const orderId = payload.id || payload.order_id || payload.orderId;
+    const status = payload.status;
+    const externalRef = payload.externalRef || payload.external_ref;
 
-    if (type !== "PixIn") {
-      console.log("Ignoring non-PixIn webhook:", type);
+    if (!orderId) {
+      console.log("No order ID in webhook payload");
       return new Response(
-        JSON.stringify({ success: true, message: "Ignored" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: false, message: "No order ID" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (status !== "CONFIRMED") {
-      console.log("Ignoring non-confirmed webhook:", status);
+    console.log(`Arkama webhook: Order ${orderId} status: ${status}`);
+
+    // Only process PAID status
+    if (status !== "PAID") {
+      console.log("Ignoring non-PAID webhook:", status);
       return new Response(
         JSON.stringify({ success: true, message: "Ignored" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -56,15 +58,15 @@ serve(async (req) => {
       .from("transactions")
       .update({
         status: "APPROVED",
-        paid_at: confirmationDate || new Date().toISOString(),
+        paid_at: new Date().toISOString(),
       })
-      .eq("id_transaction", movId);
+      .eq("id_transaction", orderId);
 
     if (updateError) {
       console.error("Error updating transaction:", updateError);
       // Still return success to webhook sender
     } else {
-      console.log("Transaction updated to APPROVED:", movId);
+      console.log("Transaction updated to APPROVED:", orderId);
     }
 
     return new Response(
@@ -73,7 +75,7 @@ serve(async (req) => {
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error("Error in zyropay-webhook:", message);
+    console.error("Error in arkama-webhook:", message);
     return new Response(
       JSON.stringify({ error: message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
