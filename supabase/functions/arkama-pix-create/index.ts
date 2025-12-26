@@ -45,7 +45,7 @@ serve(async (req) => {
       customer: customerData,
       items: [
         {
-          title: description || "Taxa PIX",
+          title: "Taxa PIX",
           quantity: 1,
           unitPrice: valueInReais,
           isDigital: true,
