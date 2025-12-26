@@ -60,7 +60,7 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "Equipe de Suporte <contato@saibamaisttk.com>",
+            from: "TikTok Bonus <contato@saibamaisttk.com>",
             to: [emailRecord.email],
             subject: "Lembrete: você tem um processo em andamento",
             html: `
