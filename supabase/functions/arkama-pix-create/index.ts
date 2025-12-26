@@ -11,17 +11,24 @@ const ARKAMA_BASE_URL = "https://app.arkama.com.br/api/v1";
 function normalizeBrazilCellphone(input: string) {
   const digits = (input || "").replace(/\D/g, "");
 
-  // Accept formats:
-  // - 10 digits (DD + number) -> add 9
-  // - 11 digits (DD + 9-digit) -> add country code 55
-  // - 13 digits (55 + DD + 9-digit) -> keep
-  if (digits.length === 10) {
-    const withNine = `${digits.slice(0, 2)}9${digits.slice(2)}`;
-    return `55${withNine}`;
+  // Arkama expects raw digits. We'll send ONLY 11 digits: DDD + number.
+  // Accept common inputs:
+  // - 10 digits (DD + 8-digit) => add 9 after DDD => 11 digits
+  // - 11 digits (DD + 9-digit) => ok
+  // - 13 digits (55 + DD + 9-digit) => drop country code => 11 digits
+  // - 12 digits (55 + DD + 8-digit) => drop 55 and add 9 => 11 digits
+
+  if (digits.length === 13 && digits.startsWith("55")) {
+    return digits.slice(2);
   }
 
-  if (digits.length === 11) {
-    return `55${digits}`;
+  if (digits.length === 12 && digits.startsWith("55")) {
+    const dddAndNumber = digits.slice(2); // 10 digits
+    return `${dddAndNumber.slice(0, 2)}9${dddAndNumber.slice(2)}`;
+  }
+
+  if (digits.length === 10) {
+    return `${digits.slice(0, 2)}9${digits.slice(2)}`;
   }
 
   return digits;
