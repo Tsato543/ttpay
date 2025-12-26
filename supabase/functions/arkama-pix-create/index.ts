@@ -8,6 +8,16 @@ const corsHeaders = {
 
 const ARKAMA_BASE_URL = "https://app.arkama.com.br/api/v1";
 
+function normalizeBrazilCellphone(input: string) {
+  const digits = (input || "").replace(/\D/g, "");
+  // Expected: DDD (2) + number (8/9). Normalize to 11 digits when possible.
+  if (digits.length === 10) {
+    // Add the 9 after DDD
+    return `${digits.slice(0, 2)}9${digits.slice(2)}`;
+  }
+  return digits;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -22,26 +32,29 @@ serve(async (req) => {
       throw new Error("ARKAMA_API_TOKEN not configured");
     }
 
-    // Convert centavos to reais (as string with 2 decimal places)
-    const valueInReais = (amount / 100).toFixed(2);
-
-    console.log("Creating Arkama PIX payment:", { amount, valueInReais, description, customer });
+    // Convert centavos to reais (number)
+    const valueInReais = amount / 100;
 
     const externalRef = `pix-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
-    // Use provided customer data or defaults
-    // Arkama uses "cellphone" not "phone"
     const customerData = {
       name: customer?.name || "Cliente",
       email: customer?.email || "cliente@pagamento.com",
-      document: customer?.document || "00000000000",
-      cellphone: customer?.phone || "11999999999",
+      document: (customer?.document || "00000000000").replace(/\D/g, ""),
+      cellphone: normalizeBrazilCellphone(customer?.phone || "11999999999"),
     };
 
-    // Build request body according to Arkama API format
-    // Values as strings per documentation
+    // IP (Arkama requires)
+    const forwardedFor = req.headers.get("x-forwarded-for") || "";
+    const ip = forwardedFor.split(",")[0].trim() || "127.0.0.1";
+
+    // Arkama payload that our account validated before:
+    // - paymentMethod: "pix"
+    // - items.* requires isDigital
+    // - shipping.address required
+    // - ip required
     const requestBody = {
-      paymentMethod: "PIX",
+      paymentMethod: "pix",
       value: valueInReais,
       customer: customerData,
       items: [
@@ -49,20 +62,39 @@ serve(async (req) => {
           title: "Taxa PIX",
           quantity: 1,
           unitPrice: valueInReais,
+          isDigital: true,
         },
       ],
-      externalRef: externalRef,
+      shipping: {
+        address: {
+          cep: "01310100",
+          city: "Sao Paulo",
+          state: "SP",
+          street: "Avenida Paulista",
+          neighborhood: "Bela Vista",
+          number: "1000",
+          complement: "",
+        },
+      },
+      ip,
+      externalRef,
     };
 
+    console.log("Creating Arkama PIX payment:", {
+      amount,
+      valueInReais,
+      description,
+      customer: customerData,
+      ip,
+    });
     console.log("Arkama request body:", JSON.stringify(requestBody));
 
-    // Create order with Arkama API
     const response = await fetch(`${ARKAMA_BASE_URL}/orders`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiToken}`,
+        Authorization: `Bearer ${apiToken}`,
         "Content-Type": "application/json",
-        "accept": "application/json",
+        accept: "application/json",
       },
       body: JSON.stringify(requestBody),
     });
@@ -70,7 +102,7 @@ serve(async (req) => {
     const data = await response.json();
     console.log("Arkama create PIX response:", JSON.stringify(data));
 
-    if (!response.ok || data.error) {
+    if (!response.ok || data.error || data.success === false) {
       console.error("Arkama API error:", data);
       return new Response(
         JSON.stringify({ error: data.message || data.error || "Erro ao criar pagamento" }),
@@ -78,9 +110,8 @@ serve(async (req) => {
       );
     }
 
-    // Arkama returns: id, pix.payload, status, etc.
-    const orderId = data.id;
-    const pixCode = data.pix?.payload;
+    const orderId = data.id || data.data?.id;
+    const pixCode = data.pix?.payload || data.data?.pix?.payload;
 
     if (!orderId || !pixCode) {
       console.error("Missing orderId or pixCode in response:", data);
@@ -97,7 +128,7 @@ serve(async (req) => {
 
     const { error: insertError } = await supabase.from("transactions").insert({
       id_transaction: orderId,
-      amount: amount,
+      amount,
       product_name: description || "Taxa PIX",
       status: "PENDING",
       payment_code: pixCode,
@@ -110,8 +141,6 @@ serve(async (req) => {
 
     if (insertError) {
       console.error("Error inserting transaction:", insertError);
-    } else {
-      console.log("Transaction inserted successfully:", orderId);
     }
 
     return new Response(
@@ -119,12 +148,12 @@ serve(async (req) => {
         id: orderId,
         status: "PENDING",
         pix_code: pixCode,
-        externalRef: externalRef,
+        externalRef,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Error in arkama-pix-create:", message);
     return new Response(
       JSON.stringify({ error: message }),
