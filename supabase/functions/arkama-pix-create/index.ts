@@ -47,21 +47,29 @@ serve(async (req) => {
     const valueInReais = (amount / 100).toFixed(2);
 
     // Arkama API - Create order with PIX payment
+    // Arkama requires either `value` or `total_value`.
     const requestBody = {
-      paymentMethod: "pix", // lowercase as per API
+      paymentMethod: "pix", // per docs
       ip: clientIp,
       externalRef: externalRef,
+
+      // Required total
+      value: Number(valueInReais),
+
+      // Items list (required)
       items: [
         {
           title: description || "Pagamento PIX",
           quantity: 1,
           unitPrice: valueInReais,
-        }
+        },
       ],
+
       customer: {
         name: "Cliente",
         email: "cliente@pagamento.com",
       },
+
       utms: {
         source: "lovable",
       },
