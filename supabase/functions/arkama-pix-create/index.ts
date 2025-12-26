@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, description } = await req.json();
+    const { amount, description, customer } = await req.json();
 
     const apiToken = Deno.env.get("ARKAMA_API_TOKEN");
     if (!apiToken) {
@@ -25,9 +25,17 @@ serve(async (req) => {
     // Convert centavos to reais
     const valueInReais = amount / 100;
 
-    console.log("Creating Arkama PIX payment:", { amount, valueInReais, description });
+    console.log("Creating Arkama PIX payment:", { amount, valueInReais, description, customer });
 
     const externalRef = `pix-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+    // Use provided customer data or defaults
+    const customerData = {
+      name: customer?.name || "Cliente",
+      email: customer?.email || "cliente@pagamento.com",
+      document: customer?.document || "00000000000",
+      phone: customer?.phone || "11999999999",
+    };
 
     // Create order with Arkama API
     const response = await fetch(`${ARKAMA_BASE_URL}/orders`, {
@@ -40,15 +48,9 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         value: valueInReais,
-        total_value: valueInReais,
         paymentMethod: "pix",
         installments: 1,
-        customer: {
-          name: "Usuario",
-          email: "user@example.com",
-          document: "00000000000",
-          phone: "11999999999",
-        },
+        customer: customerData,
         items: [
           {
             name: description || "Taxa PIX",
@@ -95,9 +97,10 @@ serve(async (req) => {
       product_name: description || "Taxa PIX",
       status: "PENDING",
       payment_code: pixCode,
-      user_cpf: "000.000.000-00",
-      user_email: "user@example.com",
-      user_name: "Usuario",
+      user_cpf: customerData.document,
+      user_email: customerData.email,
+      user_name: customerData.name,
+      user_phone: customerData.phone,
       page_origin: "index",
     });
 

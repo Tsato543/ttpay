@@ -2,14 +2,22 @@ import { useState, useEffect, useCallback, forwardRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { trackInitiateCheckout, trackAddPaymentInfo, trackPurchase } from '@/lib/tiktokPixel';
 
+interface CustomerData {
+  nome: string;
+  email: string;
+  cpf: string;
+  telefone: string;
+}
+
 interface PixPaymentPopupProps {
   amount: number;
   description?: string;
+  customerData?: CustomerData;
   onSuccess: () => void;
   onClose: () => void;
 }
 
-const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amount, description, onSuccess, onClose }, ref) => {
+const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amount, description, customerData, onSuccess, onClose }, ref) => {
   const [pixCode, setPixCode] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,8 +36,32 @@ const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amou
         setLoading(true);
         setError(null);
 
+        // Get customer data from props or localStorage
+        let customer = customerData;
+        if (!customer) {
+          const stored = localStorage.getItem('userPixData');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            customer = {
+              nome: parsed.nome || 'Cliente',
+              email: parsed.email || 'cliente@pagamento.com',
+              cpf: parsed.cpf || '',
+              telefone: parsed.telefone || '',
+            };
+          }
+        }
+
         const { data, error: fnError } = await supabase.functions.invoke('arkama-pix-create', {
-          body: { amount, description },
+          body: { 
+            amount, 
+            description,
+            customer: customer ? {
+              name: customer.nome,
+              email: customer.email,
+              document: customer.cpf.replace(/\D/g, ''),
+              phone: customer.telefone.replace(/\D/g, ''),
+            } : undefined,
+          },
         });
 
         if (fnError) {
@@ -60,7 +92,7 @@ const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amou
     };
 
     createPayment();
-  }, [amount, description]);
+  }, [amount, description, customerData]);
 
   useEffect(() => {
     if (!paymentId || status === 'APPROVED') return;
