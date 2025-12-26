@@ -24,6 +24,7 @@ const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amou
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [status, setStatus] = useState<string>('PENDING');
+  const [hasCreatedPayment, setHasCreatedPayment] = useState(false);
 
   // Track InitiateCheckout when popup opens
   useEffect(() => {
@@ -31,8 +32,12 @@ const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amou
   }, [amount, description]);
 
   useEffect(() => {
+    // Prevent multiple payment creations
+    if (hasCreatedPayment) return;
+    
     const createPayment = async () => {
       try {
+        setHasCreatedPayment(true);
         setLoading(true);
         setError(null);
 
@@ -59,7 +64,7 @@ const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amou
               name: customer.nome,
               email: customer.email,
               document: customer.cpf.replace(/\D/g, ''),
-              phone: customer.telefone, // keep raw (edge function will format/sanitize)
+              phone: customer.telefone,
             } : undefined,
           },
         });
@@ -92,7 +97,7 @@ const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amou
     };
 
     createPayment();
-  }, [amount, description, customerData]);
+  }, [hasCreatedPayment]);
 
   useEffect(() => {
     if (!paymentId || status === 'APPROVED') return;
