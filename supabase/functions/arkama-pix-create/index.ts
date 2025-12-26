@@ -22,47 +22,35 @@ serve(async (req) => {
       throw new Error("ARKAMA_API_TOKEN not configured");
     }
 
-    // Convert centavos to reais
-    const valueInReais = amount / 100;
+    // Convert centavos to reais (as string with 2 decimal places)
+    const valueInReais = (amount / 100).toFixed(2);
 
     console.log("Creating Arkama PIX payment:", { amount, valueInReais, description, customer });
 
     const externalRef = `pix-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
     // Use provided customer data or defaults
+    // Arkama uses "cellphone" not "phone"
     const customerData = {
       name: customer?.name || "Cliente",
       email: customer?.email || "cliente@pagamento.com",
       document: customer?.document || "00000000000",
-      phone: customer?.phone || "11999999999",
+      cellphone: customer?.phone || "11999999999",
     };
 
     // Build request body according to Arkama API format
+    // Values as strings per documentation
     const requestBody = {
+      paymentMethod: "PIX",
       value: valueInReais,
-      paymentMethod: "pix",
-      installments: 1,
       customer: customerData,
       items: [
         {
           title: "Taxa PIX",
           quantity: 1,
           unitPrice: valueInReais,
-          isDigital: true,
         },
       ],
-      shipping: {
-        address: {
-          cep: "01310100",
-          city: "Sao Paulo",
-          state: "SP",
-          street: "Avenida Paulista",
-          neighborhood: "Bela Vista",
-          number: "1000",
-          complement: "",
-        },
-      },
-      ip: "127.0.0.1",
       externalRef: externalRef,
     };
 
@@ -74,7 +62,6 @@ serve(async (req) => {
       headers: {
         "Authorization": `Bearer ${apiToken}`,
         "Content-Type": "application/json",
-        "User-Agent": "TikTokBonus",
         "accept": "application/json",
       },
       body: JSON.stringify(requestBody),
@@ -91,9 +78,9 @@ serve(async (req) => {
       );
     }
 
-    // Arkama returns: id, pix (with payload), status, etc.
-    const orderId = data.id || data.data?.id;
-    const pixCode = data.pix?.payload || data.pix?.code || data.data?.pix?.payload || data.data?.pix?.code;
+    // Arkama returns: id, pix.payload, status, etc.
+    const orderId = data.id;
+    const pixCode = data.pix?.payload;
 
     if (!orderId || !pixCode) {
       console.error("Missing orderId or pixCode in response:", data);
@@ -117,7 +104,7 @@ serve(async (req) => {
       user_cpf: customerData.document,
       user_email: customerData.email,
       user_name: customerData.name,
-      user_phone: customerData.phone,
+      user_phone: customerData.cellphone,
       page_origin: "index",
     });
 

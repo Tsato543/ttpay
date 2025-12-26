@@ -16,18 +16,25 @@ serve(async (req) => {
     const payload = await req.json();
     console.log("Arkama webhook received:", JSON.stringify(payload));
 
-    // Arkama webhook payload format 2.0.0:
+    // Arkama webhook format:
     // {
-    //   "id": "order_id",
-    //   "status": "PAID" | "PENDING" | "CANCELED" | "REFUSED",
-    //   "externalRef": "...",
-    //   "value": 10.00,
-    //   ...
+    //   "event": "ORDER_STATUS_CHANGED",
+    //   "data": {
+    //     "id": "OREKNLFMQCTF",
+    //     "status": "PAID",
+    //     "value": "100.00",
+    //     "paymentMethod": "PIX",
+    //     ...
+    //   }
     // }
 
-    const orderId = payload.id || payload.order_id || payload.orderId;
-    const status = payload.status;
-    const externalRef = payload.externalRef || payload.external_ref;
+    const event = payload.event;
+    const data = payload.data || payload;
+    
+    const orderId = data.id || data.order_id || data.orderId;
+    const status = data.status;
+
+    console.log(`Arkama webhook: Event=${event}, Order=${orderId}, Status=${status}`);
 
     if (!orderId) {
       console.log("No order ID in webhook payload");
@@ -37,11 +44,9 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Arkama webhook: Order ${orderId} status: ${status}`);
-
-    // Only process PAID status
-    if (status !== "PAID") {
-      console.log("Ignoring non-PAID webhook:", status);
+    // Only process PAID status from ORDER_STATUS_CHANGED event
+    if (event !== "ORDER_STATUS_CHANGED" || status !== "PAID") {
+      console.log(`Ignoring webhook: event=${event}, status=${status}`);
       return new Response(
         JSON.stringify({ success: true, message: "Ignored" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -64,7 +69,6 @@ serve(async (req) => {
 
     if (updateError) {
       console.error("Error updating transaction:", updateError);
-      // Still return success to webhook sender
     } else {
       console.log("Transaction updated to APPROVED:", orderId);
     }
