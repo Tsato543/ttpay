@@ -6,6 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const ARKAMA_BASE_URL = "https://app.arkama.com.br/api/v1";
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -52,15 +54,22 @@ serve(async (req) => {
     const apiToken = Deno.env.get("ARKAMA_API_TOKEN");
     if (!apiToken) {
       console.error("ARKAMA_API_TOKEN not configured");
+      // Return DB status or PENDING if no API token
       return new Response(
-        JSON.stringify({ error: "API token not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          id: id,
+          status: transaction?.status || "PENDING",
+          method: "PIX",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const arkamaResponse = await fetch(`https://api.arkama.app/v1/pix/qrcode/${id}`, {
+    // Arkama API - Get order status
+    const arkamaResponse = await fetch(`${ARKAMA_BASE_URL}/orders/${id}`, {
       method: "GET",
       headers: {
+        "Accept": "application/json",
         "Authorization": `Bearer ${apiToken}`,
       },
     });
@@ -83,8 +92,9 @@ serve(async (req) => {
     const arkamaData = JSON.parse(responseText);
     
     // Map Arkama status to our status
+    // Arkama statuses: UNDEFINED, PENDING, PAID, CANCELED, REFUSED, CHARGEDBACK, REFUNDED, IN_ANALYSIS, IN_DISPUTE, PROCESSING, PRE_CHARGEDBACK
     let status = "PENDING";
-    if (arkamaData.status === "paid" || arkamaData.status === "PAID" || arkamaData.status === "approved" || arkamaData.status === "APPROVED") {
+    if (arkamaData.status === "PAID") {
       status = "APPROVED";
       
       // Update database
@@ -92,8 +102,10 @@ serve(async (req) => {
         .from("transactions")
         .update({ status: "APPROVED", paid_at: new Date().toISOString() })
         .eq("id_transaction", id);
-    } else if (arkamaData.status === "cancelled" || arkamaData.status === "CANCELLED" || arkamaData.status === "expired" || arkamaData.status === "EXPIRED") {
+    } else if (arkamaData.status === "CANCELED" || arkamaData.status === "REFUSED" || arkamaData.status === "CHARGEDBACK" || arkamaData.status === "REFUNDED") {
       status = "CANCELLED";
+    } else if (arkamaData.status === "PENDING" || arkamaData.status === "PROCESSING" || arkamaData.status === "IN_ANALYSIS") {
+      status = "PENDING";
     }
 
     return new Response(
