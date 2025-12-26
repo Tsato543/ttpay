@@ -34,3 +34,12 @@ verify_jwt = false
 
 [functions.zyropay-webhook]
 verify_jwt = false
+
+[functions.mangofy-pix-create]
+verify_jwt = false
+
+[functions.mangofy-pix-status]
+verify_jwt = false
+
+[functions.mangofy-webhook]
+verify_jwt = false
