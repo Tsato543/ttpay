@@ -43,3 +43,9 @@ verify_jwt = false
 
 [functions.mangofy-webhook]
 verify_jwt = false
+
+[functions.arkama-pix-create]
+verify_jwt = false
+
+[functions.arkama-pix-status]
+verify_jwt = false
