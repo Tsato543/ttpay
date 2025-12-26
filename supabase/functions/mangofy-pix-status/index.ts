@@ -115,7 +115,8 @@ serve(async (req) => {
       );
     }
 
-    const rawStatus = data.payment_status || data.status || "pending";
+    // Mangofy returns { data: { payment_status: "approved" } }
+    const rawStatus = data.data?.payment_status || data.payment_status || data.status || "pending";
     const normalizedStatus = normalizeStatus(rawStatus);
 
     console.log("Raw status:", rawStatus, "Normalized:", normalizedStatus);
