@@ -22,17 +22,21 @@ serve(async (req) => {
     console.log("Checking Mangofy payment status:", paymentCode);
 
     const apiKey = Deno.env.get("MANGOFY_API_KEY");
+    const storeCode = Deno.env.get("MANGOFY_STORE_CODE");
 
-    if (!apiKey) {
-      throw new Error("Mangofy API key not configured");
+    if (!apiKey || !storeCode) {
+      throw new Error("Mangofy credentials not configured");
     }
 
     // Check payment status via Mangofy API
+    // Headers: Authorization (API Key without Bearer), Store-Code
     const response = await fetch(`https://checkout.mangofy.com.br/api/v1/payment/${paymentCode}`, {
       method: "GET",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        "Authorization": apiKey,
+        "Store-Code": storeCode,
         "Content-Type": "application/json",
+        "Accept": "application/json",
       },
     });
 
@@ -41,14 +45,15 @@ serve(async (req) => {
 
     if (!response.ok) {
       console.error("Mangofy error:", data);
-      throw new Error(data.message || "Failed to check payment status");
+      throw new Error(data.message || data.error || "Failed to check payment status");
     }
 
     // Map Mangofy status to our status format
+    // Mangofy statuses: approved, pending, refunded, error
     let status = "PENDING";
-    if (data.payment_status === "approved" || data.status === "approved" || data.status === "paid") {
+    if (data.payment_status === "approved") {
       status = "APPROVED";
-    } else if (data.payment_status === "cancelled" || data.status === "cancelled" || data.status === "expired") {
+    } else if (data.payment_status === "refunded" || data.payment_status === "error") {
       status = "CANCELLED";
     }
 
@@ -57,7 +62,7 @@ serve(async (req) => {
         id: paymentCode,
         status: status,
         method: "PIX",
-        raw_status: data.payment_status || data.status,
+        raw_status: data.payment_status,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

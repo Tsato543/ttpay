@@ -24,25 +24,42 @@ serve(async (req) => {
     }
 
     // Generate unique external ID
-    const externalId = `pix-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    const externalCode = `pix-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
     // Create PIX payment via Mangofy API
+    // Headers: Authorization (API Key without Bearer), Store-Code
     const response = await fetch("https://checkout.mangofy.com.br/api/v1/payment", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        "Authorization": apiKey,
+        "Store-Code": storeCode,
         "Content-Type": "application/json",
+        "Accept": "application/json",
       },
       body: JSON.stringify({
         store_code: storeCode,
-        amount: amount, // Amount in cents
+        external_code: externalCode,
         payment_method: "pix",
-        external_id: externalId,
-        description: description || "Pagamento PIX",
+        payment_format: "regular",
+        installments: 1,
+        payment_amount: amount, // Amount in cents
+        shipping_amount: 0,
+        items: [
+          {
+            code: "PIX001",
+            name: description || "Pagamento PIX",
+            amount: amount,
+            total: amount,
+          }
+        ],
         customer: {
-          name: "Cliente",
           email: "cliente@email.com",
+          name: "Cliente",
           document: "00000000000",
+          phone: "00000000000",
+        },
+        pix: {
+          expires_in_days: 1,
         },
       }),
     });
@@ -52,7 +69,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       console.error("Mangofy error:", data);
-      throw new Error(data.message || "Failed to create PIX payment");
+      throw new Error(data.message || data.error || "Failed to create PIX payment");
     }
 
     // Create Supabase client to save transaction
@@ -62,7 +79,7 @@ serve(async (req) => {
 
     // Save transaction in database
     const { error: insertError } = await supabase.from("transactions").insert({
-      id_transaction: data.payment_code || externalId,
+      id_transaction: data.payment_code || externalCode,
       amount: amount,
       product_name: description || "Pagamento PIX",
       status: "waiting_payment",
@@ -70,7 +87,7 @@ serve(async (req) => {
       user_email: "cliente@email.com",
       user_cpf: "00000000000",
       page_origin: "mangofy",
-      payment_code: data.pix_code || data.qr_code,
+      payment_code: data.pix?.qr_code || data.qr_code || data.pix_code,
     });
 
     if (insertError) {
@@ -79,11 +96,11 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        id: data.payment_code || externalId,
-        paymentId: data.payment_id,
+        id: data.payment_code || externalCode,
+        paymentId: data.payment_code,
         status: "PENDING",
-        pix_code: data.pix_code || data.qr_code,
-        externalId: externalId,
+        pix_code: data.pix?.qr_code || data.qr_code || data.pix_code,
+        externalId: externalCode,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
