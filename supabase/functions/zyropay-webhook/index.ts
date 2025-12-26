@@ -70,6 +70,7 @@ serve(async (req) => {
       // Send Pushcut notifications to both partners
       const pushcutUrl1 = Deno.env.get("PUSHCUT_WEBHOOK_URL");
       const pushcutUrl2 = Deno.env.get("PUSHCUT_WEBHOOK_URL_2");
+      const utmifyUrl = Deno.env.get("UTMIFY_WEBHOOK_URL");
       
       const valorFormatado = (transactionData?.amount / 100).toLocaleString('pt-BR', {
         style: 'currency',
@@ -102,6 +103,47 @@ serve(async (req) => {
             body: JSON.stringify(notificationPayload),
           }).then(() => console.log("Pushcut notification 2 sent successfully"))
             .catch((err) => console.error("Error sending Pushcut notification 2:", err))
+        );
+      }
+
+      // Send data to Utmify for conversion tracking
+      if (utmifyUrl) {
+        const utmifyPayload = {
+          // Transaction data
+          transaction_id: transactionData?.id_transaction || movId,
+          order_id: transactionData?.id,
+          status: "approved",
+          payment_method: "pix",
+          
+          // Customer data
+          customer_name: transactionData?.user_name,
+          customer_email: transactionData?.user_email,
+          customer_phone: transactionData?.user_phone,
+          customer_document: transactionData?.user_cpf,
+          
+          // Product data
+          product_name: transactionData?.product_name,
+          
+          // Value data (in cents and reais)
+          amount_cents: transactionData?.amount,
+          amount: transactionData?.amount / 100,
+          currency: "BRL",
+          
+          // Timestamps
+          created_at: transactionData?.created_at,
+          paid_at: confirmationDate || new Date().toISOString(),
+          
+          // Source
+          page_origin: transactionData?.page_origin,
+        };
+
+        notifications.push(
+          fetch(utmifyUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(utmifyPayload),
+          }).then(() => console.log("Utmify webhook sent successfully:", JSON.stringify(utmifyPayload)))
+            .catch((err) => console.error("Error sending Utmify webhook:", err))
         );
       }
 
