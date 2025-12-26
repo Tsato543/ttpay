@@ -91,9 +91,9 @@ serve(async (req) => {
       );
     }
 
-    // Arkama returns: id, pix (with code), status, etc.
+    // Arkama returns: id, pix (with payload), status, etc.
     const orderId = data.id || data.data?.id;
-    const pixCode = data.pix?.code || data.data?.pix?.code || data.pix?.qrcode || data.data?.pix?.qrcode;
+    const pixCode = data.pix?.payload || data.pix?.code || data.data?.pix?.payload || data.data?.pix?.code;
 
     if (!orderId || !pixCode) {
       console.error("Missing orderId or pixCode in response:", data);
