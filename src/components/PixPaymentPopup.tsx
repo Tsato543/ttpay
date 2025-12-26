@@ -59,7 +59,7 @@ const PixPaymentPopup = forwardRef<HTMLDivElement, PixPaymentPopupProps>(({ amou
               name: customer.nome,
               email: customer.email,
               document: customer.cpf.replace(/\D/g, ''),
-              phone: customer.telefone.replace(/\D/g, ''),
+              phone: customer.telefone, // keep raw (edge function will format/sanitize)
             } : undefined,
           },
         });
