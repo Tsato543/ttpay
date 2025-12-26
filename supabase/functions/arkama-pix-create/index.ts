@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-forwarded-for, x-real-ip",
 };
 
 const ARKAMA_BASE_URL = "https://app.arkama.com.br/api/v1";
@@ -38,7 +38,37 @@ serve(async (req) => {
     // Generate external reference
     const externalRef = `PIX-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
+    // Get client IP from headers
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
+      || req.headers.get("x-real-ip") 
+      || "127.0.0.1";
+
+    // Convert cents to reais (amount comes in cents)
+    const valueInReais = (amount / 100).toFixed(2);
+
     // Arkama API - Create order with PIX payment
+    const requestBody = {
+      paymentMethod: "pix", // lowercase as per API
+      ip: clientIp,
+      externalRef: externalRef,
+      items: [
+        {
+          title: description || "Pagamento PIX",
+          quantity: 1,
+          unitPrice: valueInReais,
+        }
+      ],
+      customer: {
+        name: "Cliente",
+        email: "cliente@pagamento.com",
+      },
+      utms: {
+        source: "lovable",
+      },
+    };
+
+    console.log("Arkama request body:", JSON.stringify(requestBody));
+
     const arkamaResponse = await fetch(`${ARKAMA_BASE_URL}/orders`, {
       method: "POST",
       headers: {
@@ -46,19 +76,7 @@ serve(async (req) => {
         "Accept": "application/json",
         "Authorization": `Bearer ${apiToken}`,
       },
-      body: JSON.stringify({
-        value: amount / 100, // Convert cents to reais
-        paymentMethod: "PIX",
-        externalRef: externalRef,
-        customer: {
-          name: "Cliente",
-          email: "cliente@email.com",
-        },
-        utms: {
-          source: "lovable",
-          campaign: description || "Pagamento PIX",
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     const responseText = await arkamaResponse.text();
@@ -89,7 +107,7 @@ serve(async (req) => {
       product_name: description || "Pagamento PIX",
       status: "PENDING",
       user_name: arkamaData.customer?.name || "Cliente",
-      user_email: arkamaData.customer?.email || "cliente@email.com",
+      user_email: arkamaData.customer?.email || "cliente@pagamento.com",
       user_cpf: arkamaData.customer?.document || "00000000000",
       payment_code: arkamaData.pix?.payload,
       page_origin: "arkama",
