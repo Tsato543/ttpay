@@ -48,26 +48,41 @@ serve(async (req) => {
 
     // Arkama API - Create order with PIX payment
     // Arkama requires either `value` or `total_value`.
+    // Also requires `shipping.address` and `items[].isDigital`.
     const requestBody = {
-      paymentMethod: "pix", // per docs
+      paymentMethod: "pix",
       ip: clientIp,
       externalRef: externalRef,
 
-      // Required total
       value: Number(valueInReais),
 
-      // Items list (required)
       items: [
         {
           title: description || "Pagamento PIX",
           quantity: 1,
-          unitPrice: valueInReais,
+          unitPrice: Number(valueInReais),
+          isDigital: true,
         },
       ],
+
+      // Required structure (even for digital goods)
+      shipping: {
+        address: {
+          cep: null,
+          city: null,
+          state: null,
+          street: null,
+          neighborhood: null,
+          number: null,
+          complement: null,
+        },
+      },
 
       customer: {
         name: "Cliente",
         email: "cliente@pagamento.com",
+        cellphone: null,
+        document: null,
       },
 
       utms: {
