@@ -9,7 +9,8 @@ declare global {
   }
 }
 
-export const PIXEL_ID = 'D4CVUIRC77U004J48UKG';
+export const PIXEL_ID_1 = 'D4CVUIRC77U004J48UKG';
+export const PIXEL_ID_2 = 'D57BOH3C77U843EEANI0';
 
 // Track page view
 export const trackPageView = () => {
