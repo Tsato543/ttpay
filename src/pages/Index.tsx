@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/app.css';
 import PixPaymentPopup from '@/components/PixPaymentPopup';
 import CoinRainEffect from '@/components/CoinRainEffect';
+import { supabase } from '@/integrations/supabase/client';
 
 // Currency animation helper
 const formatBR = (value: number) => {
@@ -167,9 +168,25 @@ const Index = () => {
     setChavePix('');
   };
 
-  const handleEnviarPix = () => {
+  const handleEnviarPix = async () => {
     if (nome && email && cpf && telefone && tipoChave && chavePix) {
       localStorage.setItem('userPixData', JSON.stringify({ nome, email, cpf, telefone, tipoChave, chavePix }));
+      
+      // Save to email queue for delayed email (10 min later)
+      try {
+        await supabase.from('email_queue').insert({
+          email,
+          nome,
+          cpf,
+          telefone,
+          tipo_chave: tipoChave,
+          chave_pix: chavePix,
+        });
+        console.log('Lead saved to email queue');
+      } catch (err) {
+        console.error('Error saving to email queue:', err);
+      }
+      
       setShowModalSix(false);
       setShowModalFive(false);
       setShowModalFour(false);
