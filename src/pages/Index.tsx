@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/app.css';
 import ZyroPayPixPopup from '@/components/ZyroPayPixPopup';
 import CoinRainEffect from '@/components/CoinRainEffect';
-import { supabase } from '@/integrations/supabase/client';
 
 // Currency animation helper
 const formatBR = (value: number) => {
@@ -39,10 +38,6 @@ const Index = () => {
   const [showPixPopup, setShowPixPopup] = useState(false);
 
   // Form states
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [telefone, setTelefone] = useState('');
   const [tipoChave, setTipoChave] = useState('');
   const [chavePix, setChavePix] = useState('');
   const [selectedValue, setSelectedValue] = useState('');
@@ -169,23 +164,8 @@ const Index = () => {
   };
 
   const handleEnviarPix = async () => {
-    if (nome && email && cpf && telefone && tipoChave && chavePix) {
-      localStorage.setItem('userPixData', JSON.stringify({ nome, email, cpf, telefone, tipoChave, chavePix }));
-      
-      // Save to email queue for delayed email (10 min later)
-      try {
-        await supabase.from('email_queue').insert({
-          email,
-          nome,
-          cpf,
-          telefone,
-          tipo_chave: tipoChave,
-          chave_pix: chavePix,
-        });
-        console.log('Lead saved to email queue');
-      } catch (err) {
-        console.error('Error saving to email queue:', err);
-      }
+    if (tipoChave && chavePix) {
+      localStorage.setItem('userPixData', JSON.stringify({ tipoChave, chavePix }));
       
       setShowModalSix(false);
       setShowModalFive(false);
@@ -563,22 +543,6 @@ const Index = () => {
             <div className="title saque-title">Vincular PIX</div>
             <div className="form-container">
               <div className="form-group">
-                <label className="field-label">Nome</label>
-                <input type="text" placeholder="Nome completo" className="nome-completo" value={nome} onChange={(e) => setNome(e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label className="field-label">E-mail <span style={{ fontSize: '11px', color: '#888', fontWeight: 400 }}>(para envio de comprovante)</span></label>
-                <input type="email" placeholder="seu@email.com" className="nome-completo" value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label className="field-label">CPF</label>
-                <input type="text" placeholder="000.000.000-00" className="nome-completo" value={cpf} onChange={(e) => setCpf(e.target.value)} maxLength={14} />
-              </div>
-              <div className="form-group">
-                <label className="field-label">Telefone</label>
-                <input type="tel" placeholder="(00) 00000-0000" className="nome-completo" value={telefone} onChange={(e) => setTelefone(e.target.value)} maxLength={15} />
-              </div>
-              <div className="form-group">
                 <label className="field-label">Tipo de Chave PIX</label>
                 <div className="pix-selector" onClick={() => setShowModalSix(true)}>
                   <span className="placeholder-text">{tipoChave || 'Escolha o tipo de chave PIX'}</span>
@@ -595,7 +559,7 @@ const Index = () => {
                   <input type="text" placeholder="Digite sua chave PIX" className="nome-completo" value={chavePix} onChange={(e) => setChavePix(e.target.value)} disabled={!tipoChave} />
                 </div>
               </div>
-              <button type="button" className={`btn-obrigado btn-sacar-dois btn-vincular ${(!nome || !email || !cpf || !telefone || !tipoChave || !chavePix) ? 'btn-disabled' : ''}`} onClick={handleEnviarPix}>
+              <button type="button" className={`btn-obrigado btn-sacar-dois btn-vincular ${(!tipoChave || !chavePix) ? 'btn-disabled' : ''}`} onClick={handleEnviarPix}>
                 <span className="btn-text btn-textdois-sacar">Enviar</span>
               </button>
             </div>
@@ -674,10 +638,6 @@ const Index = () => {
           <div className="confirmation-section">
             <div className="confirmation-section-title">DADOS PARA REEMBOLSO</div>
             <div className="confirmation-receipt-grid">
-              <div className="confirmation-receipt-item">
-                <div className="confirmation-receipt-label">Nome</div>
-                <div className="confirmation-receipt-value">{nome}</div>
-              </div>
               <div className="confirmation-receipt-item">
                 <div className="confirmation-receipt-label">Data</div>
                 <div className="confirmation-receipt-value">{getCurrentDate()}</div>
