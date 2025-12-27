@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import MangofyPixPopup from '@/components/MangofyPixPopup';
+import ZyroPayPixPopup from '@/components/ZyroPayPixPopup';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
 import '../styles/app.css';
@@ -90,7 +90,7 @@ const Up2 = () => {
         </div>
 
         {showPixPopup && (
-          <MangofyPixPopup
+          <ZyroPayPixPopup
             amount={TAXA_NFS_CENTAVOS}
             description="Emissão NFS obrigatória"
             onSuccess={handlePaymentSuccess}

