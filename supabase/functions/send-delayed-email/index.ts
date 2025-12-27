@@ -22,50 +22,33 @@ serve(async (req) => {
 
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
 
-    // Find transactions that were paid more than 10 minutes ago
-    const { data: paidTransactions, error: txError } = await supabase
-      .from("transactions")
-      .select("user_email, user_name")
-      .eq("amount", 37.37)
-      .in("status", ["paid", "APPROVED", "approved", "PAID"])
-      .lt("paid_at", tenMinutesAgo);
+    // Find all pending emails created more than 10 minutes ago
+    const { data: pendingEmails, error: emailError } = await supabase
+      .from("email_queue")
+      .select("*")
+      .eq("status", "pending")
+      .lt("created_at", tenMinutesAgo);
 
-    if (txError) {
-      console.error("Error fetching paid transactions:", txError);
-      throw txError;
+    if (emailError) {
+      console.error("Error fetching pending emails:", emailError);
+      throw emailError;
     }
 
-    console.log(`Found ${paidTransactions?.length || 0} paid transactions older than 10 min`);
+    console.log(`Found ${pendingEmails?.length || 0} pending emails older than 10 min`);
 
-    if (!paidTransactions || paidTransactions.length === 0) {
+    if (!pendingEmails || pendingEmails.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, message: "No paid transactions to process", count: 0 }),
+        JSON.stringify({ success: true, message: "No pending emails to process", count: 0 }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     let sentCount = 0;
-    let skippedCount = 0;
     let errorCount = 0;
 
-    for (const tx of paidTransactions) {
-      // Check if email is still pending in queue
-      const { data: emailRecord, error: emailError } = await supabase
-        .from("email_queue")
-        .select("*")
-        .eq("email", tx.user_email)
-        .eq("status", "pending")
-        .limit(1)
-        .single();
-
-      if (emailError || !emailRecord) {
-        // No pending email for this user, skip
-        skippedCount++;
-        continue;
-      }
-
+    for (const emailRecord of pendingEmails) {
       try {
-        console.log(`Sending email to ${tx.user_email}...`);
+        console.log(`Sending email to ${emailRecord.email}...`);
 
         const emailResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -75,7 +58,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             from: "TikTok Bonus <contato@saibamaisttk.com>",
-            to: [tx.user_email],
+            to: [emailRecord.email],
             subject: "Lembrete: você tem um processo em andamento",
             html: `
               <!DOCTYPE html>
@@ -88,7 +71,7 @@ serve(async (req) => {
                 <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
                   
                   <div style="background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); padding: 40px 20px; text-align: center;">
-                    <h1 style="color: #ffffff; margin: 0 0 8px 0; font-size: 26px; font-weight: 600;">Parabéns, ${emailRecord.nome || tx.user_name}!</h1>
+                    <h1 style="color: #ffffff; margin: 0 0 8px 0; font-size: 26px; font-weight: 600;">Parabéns, ${emailRecord.nome}!</h1>
                     <p style="color: #E91E63; margin: 0; font-size: 16px; font-weight: 500;">Sua conta foi aprovada</p>
                   </div>
                   
@@ -135,8 +118,8 @@ serve(async (req) => {
           .eq("id", emailRecord.id);
 
         sentCount++;
-      } catch (emailError) {
-        console.error(`Error sending email to ${tx.user_email}:`, emailError);
+      } catch (sendError) {
+        console.error(`Error sending email to ${emailRecord.email}:`, sendError);
         
         await supabase
           .from("email_queue")
@@ -147,14 +130,13 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Done: ${sentCount} sent, ${errorCount} failed, ${skippedCount} skipped`);
+    console.log(`Done: ${sentCount} sent, ${errorCount} failed`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         sent: sentCount,
-        failed: errorCount,
-        skipped: skippedCount
+        failed: errorCount
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
