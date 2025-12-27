@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ParadisePixPopup from '@/components/ParadisePixPopup';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
+import { useCustomerData } from '@/hooks/useCustomerData';
 import '../styles/app.css';
 
 const SALDO_ANTIGO = 2834.72;
@@ -21,6 +22,7 @@ const formatBR = (value: number) => {
 const Up4 = () => {
   const navigate = useNavigate();
   const [showPixPopup, setShowPixPopup] = useState(false);
+  const { customer } = useCustomerData();
 
   useEffect(() => {
     trackViewContent('Upgrade Premium', TAXA_UPGRADE);
@@ -122,6 +124,7 @@ const Up4 = () => {
             amount={TAXA_UPGRADE_CENTAVOS}
             description="Upgrade Premium TikTok"
             productHash={PRODUCT_HASH}
+            customer={customer}
             onSuccess={handlePaymentSuccess}
             onClose={() => setShowPixPopup(false)}
           />

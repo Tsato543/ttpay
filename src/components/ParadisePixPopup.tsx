@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { trackInitiateCheckout, trackAddPaymentInfo, trackPurchase } from '@/lib/tiktokPixel';
+import { CustomerData } from '@/hooks/useCustomerData';
 
 interface ParadisePixPopupProps {
   amount: number; // in centavos
   description?: string;
   productHash: string;
+  customer?: CustomerData | null;
   onSuccess: () => void;
   onClose: () => void;
 }
 
-const ParadisePixPopup = ({ amount, description, productHash, onSuccess, onClose }: ParadisePixPopupProps) => {
+const ParadisePixPopup = ({ amount, description, productHash, customer, onSuccess, onClose }: ParadisePixPopupProps) => {
   const [pixCode, setPixCode] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,19 +34,21 @@ const ParadisePixPopup = ({ amount, description, productHash, onSuccess, onClose
         setLoading(true);
         setError(null);
 
-        console.log("Creating Paradise Pags payment:", { amount, description, productHash });
+        const customerData = customer || {
+          name: "Cliente",
+          email: "cliente@email.com",
+          document: "00000000000",
+          phone: "00000000000"
+        };
+
+        console.log("Creating Paradise Pags payment:", { amount, description, productHash, customer: customerData });
 
         const { data, error: fnError } = await supabase.functions.invoke('paradise-pix-create', {
           body: { 
             amount, 
             description,
             productHash,
-            customer: {
-              name: "Cliente",
-              email: "cliente@upsell.com",
-              document: "00000000000",
-              phone: "00000000000"
-            }
+            customer: customerData
           }
         });
 
