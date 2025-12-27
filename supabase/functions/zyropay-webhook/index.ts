@@ -52,19 +52,42 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Update transaction status in database
-    const { error: updateError } = await supabase
+    const { data: transactionData, error: updateError } = await supabase
       .from("transactions")
       .update({
         status: "APPROVED",
         paid_at: confirmationDate || new Date().toISOString(),
       })
-      .eq("id_transaction", movId);
+      .eq("id_transaction", movId)
+      .select("amount")
+      .single();
 
     if (updateError) {
       console.error("Error updating transaction:", updateError);
       // Still return success to webhook sender
     } else {
       console.log("Transaction updated to APPROVED:", movId);
+      
+      // Send Pushcut notification
+      const valorVenda = transactionData?.amount 
+        ? (transactionData.amount / 100).toFixed(2).replace('.', ',') 
+        : value;
+      
+      try {
+        const pushcutResponse = await fetch(
+          "https://api.pushcut.io/sFOWr5GU12NdVxS0yEX1l/notifications/MinhaNotifica%C3%A7%C3%A3o",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: `Venda aprovada! R$ ${valorVenda}`,
+            }),
+          }
+        );
+        console.log("Pushcut notification sent:", pushcutResponse.status);
+      } catch (pushError) {
+        console.error("Error sending Pushcut notification:", pushError);
+      }
     }
 
     return new Response(
