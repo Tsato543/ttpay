@@ -124,11 +124,47 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
     return () => clearInterval(interval);
   }, [paymentId, status, onSuccess, amount, description]);
 
-  const handleCopy = useCallback(() => {
+  const handleCopy = useCallback(async () => {
     if (pixCode) {
-      navigator.clipboard.writeText(pixCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      try {
+        // Try modern clipboard API first
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(pixCode);
+        } else {
+          // Fallback for older browsers or non-HTTPS
+          const textArea = document.createElement('textarea');
+          textArea.value = pixCode;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          textArea.style.top = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+        }
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+        // Fallback for any error
+        const textArea = document.createElement('textarea');
+        textArea.value = pixCode;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } catch (e) {
+          console.error('Fallback copy failed:', e);
+        }
+        document.body.removeChild(textArea);
+      }
     }
   }, [pixCode]);
 
