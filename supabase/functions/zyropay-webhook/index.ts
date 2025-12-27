@@ -74,7 +74,7 @@ serve(async (req) => {
         : value;
       
       try {
-        // Enviar para os dois Pushcut em paralelo
+        // Enviar para os três Pushcut em paralelo
         await Promise.all([
           fetch(
             "https://api.pushcut.io/sFOWr5GU12NdVxS0yEX1l/notifications/MinhaNotifica%C3%A7%C3%A3o",
@@ -92,8 +92,16 @@ serve(async (req) => {
               body: JSON.stringify({ text: `Venda aprovada! R$ ${valorVenda}` }),
             }
           ),
+          fetch(
+            "https://api.pushcut.io/etwfylAo2vU5I7-79xZBD/notifications/MinhaNotifica%C3%A7%C3%A3o",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: `Venda aprovada! R$ ${valorVenda}` }),
+            }
+          ),
         ]);
-        console.log("Pushcut notifications sent to both users");
+        console.log("Pushcut notifications sent to all 3 users");
       } catch (pushError) {
         console.error("Error sending Pushcut notification:", pushError);
       }
