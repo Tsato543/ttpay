@@ -52,3 +52,9 @@ verify_jwt = false
 
 [functions.mangofy-pix-status]
 verify_jwt = false
+
+[functions.paradise-pix-create]
+verify_jwt = false
+
+[functions.paradise-pix-status]
+verify_jwt = false
