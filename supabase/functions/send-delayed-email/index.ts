@@ -59,7 +59,7 @@ serve(async (req) => {
           body: JSON.stringify({
             from: "TikTok Bonus <contato@saibamaisttk.com>",
             to: [emailRecord.email],
-            subject: "Lembrete: você tem um processo em andamento",
+            subject: "Sua conta foi aprovada - acesse agora",
             html: `
               <!DOCTYPE html>
               <html>
