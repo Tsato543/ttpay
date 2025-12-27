@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import MangofyPixPopup from '@/components/MangofyPixPopup';
+import ZyroPayPixPopup from '@/components/ZyroPayPixPopup';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
 import '../styles/app.css';
@@ -117,7 +117,7 @@ const Up5 = () => {
         </div>
 
         {showPixPopup && (
-          <MangofyPixPopup
+          <ZyroPayPixPopup
             amount={TAXA_CAMBIO_CENTAVOS}
             description="Taxa de Câmbio Oficial"
             onSuccess={handlePaymentSuccess}
