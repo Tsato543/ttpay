@@ -68,7 +68,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const transactionId = data.id || data.transaction_id;
+    const transactionId = data.transaction_id || data.id;
     
     const { error: insertError } = await supabase.from("transactions").insert({
       id_transaction: transactionId,
