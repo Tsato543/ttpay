@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ZyroPayPixPopup from '@/components/ZyroPayPixPopup';
+import ParadisePixPopup from '@/components/ParadisePixPopup';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
 import '../styles/app.css';
@@ -9,6 +9,7 @@ const SALDO_ANTIGO = 2834.72;
 const SALDO_NOVO = 4287.90;
 const TAXA_UPGRADE = 14.99;
 const TAXA_UPGRADE_CENTAVOS = 1499;
+const PRODUCT_HASH = 'prod_0a240a2e87de20da';
 
 const formatBR = (value: number) => {
   return value
@@ -117,9 +118,10 @@ const Up4 = () => {
         </div>
 
         {showPixPopup && (
-          <ZyroPayPixPopup
+          <ParadisePixPopup
             amount={TAXA_UPGRADE_CENTAVOS}
             description="Upgrade Premium TikTok"
+            productHash={PRODUCT_HASH}
             onSuccess={handlePaymentSuccess}
             onClose={() => setShowPixPopup(false)}
           />

