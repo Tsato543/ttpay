@@ -20,6 +20,8 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
   const [copied, setCopied] = useState(false);
   const [status, setStatus] = useState<string>('PENDING');
   const [hasCreatedPayment, setHasCreatedPayment] = useState(false);
+  const [hasCalledSuccess, setHasCalledSuccess] = useState(false);
+  const [initialStatusReceived, setInitialStatusReceived] = useState(false);
 
   useEffect(() => {
     trackInitiateCheckout(amount / 100, description || 'Pagamento PIX');
@@ -82,9 +84,10 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
   }, [hasCreatedPayment, amount, description, productHash]);
 
   useEffect(() => {
-    if (!paymentId || status === 'APPROVED') return;
+    if (!paymentId || status === 'APPROVED' || hasCalledSuccess) return;
 
     console.log('Starting payment status polling for:', paymentId);
+    let isFirstCheck = true;
 
     const checkStatus = async () => {
       try {
@@ -103,8 +106,21 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
         const statusData = await response.json();
         console.log('Payment status response:', statusData);
 
-        if (statusData.status === 'APPROVED') {
+        // Se é a primeira verificação e já veio APPROVED, algo está errado
+        // (pode ser cache ou transação anterior) - ignorar e continuar polling
+        if (isFirstCheck && statusData.status === 'APPROVED') {
+          console.warn('First check returned APPROVED - ignoring possible cached result');
+          isFirstCheck = false;
+          setInitialStatusReceived(true);
+          return;
+        }
+        
+        isFirstCheck = false;
+        setInitialStatusReceived(true);
+
+        if (statusData.status === 'APPROVED' && !hasCalledSuccess) {
           setStatus('APPROVED');
+          setHasCalledSuccess(true);
           console.log('Payment APPROVED! Tracking purchase and calling onSuccess');
           trackPurchase(amount / 100, description || 'Pagamento PIX', paymentId);
           setTimeout(() => {
@@ -118,11 +134,17 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
       }
     };
 
-    checkStatus();
+    // Aguardar um pouco antes da primeira verificação para garantir que a transação foi registrada
+    const initialDelay = setTimeout(() => {
+      checkStatus();
+    }, 1500);
     
     const interval = setInterval(checkStatus, 3000);
-    return () => clearInterval(interval);
-  }, [paymentId, status, onSuccess, amount, description]);
+    return () => {
+      clearTimeout(initialDelay);
+      clearInterval(interval);
+    };
+  }, [paymentId, status, onSuccess, amount, description, hasCalledSuccess]);
 
   const handleCopy = useCallback(async () => {
     if (pixCode) {
