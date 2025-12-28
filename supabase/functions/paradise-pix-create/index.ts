@@ -68,9 +68,10 @@ serve(async (req) => {
 
     if (!response.ok || data.error) {
       console.error("Paradise Pags API error:", data);
+      // Return 200 so the client can read the error message from the body
       return new Response(
         JSON.stringify({ error: data.message || data.error || "Erro ao criar PIX" }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
