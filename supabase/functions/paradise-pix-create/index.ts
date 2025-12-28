@@ -49,11 +49,16 @@ serve(async (req) => {
 
     // Paradise pode (às vezes) devolver transaction_id reciclado. Nesse caso o PIX pode aparecer como
     // "expirado"/"já utilizado" no banco do usuário. Então tentamos gerar novamente com outra referência.
-    const MAX_CREATE_ATTEMPTS = 3;
+    // Aumentamos para 5 tentativas com delay entre elas para maior confiabilidade.
+    const MAX_CREATE_ATTEMPTS = 5;
     let data: any = null;
     let lastError: any = null;
 
     for (let attempt = 1; attempt <= MAX_CREATE_ATTEMPTS; attempt++) {
+      // Delay entre tentativas (exceto na primeira)
+      if (attempt > 1) {
+        await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+      }
       // Generate unique reference with more entropy to prevent reuse
       const timestamp = Date.now();
       const randomPart = Math.random().toString(36).substring(2, 10);
