@@ -22,6 +22,8 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
   const [hasCreatedPayment, setHasCreatedPayment] = useState(false);
   const [hasCalledSuccess, setHasCalledSuccess] = useState(false);
   const [sawNonApprovedStatus, setSawNonApprovedStatus] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_AUTO_RETRIES = 3;
 
   useEffect(() => {
     trackInitiateCheckout(amount / 100, description || 'Pagamento PIX');
@@ -43,7 +45,7 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
           phone: "00000000000"
         };
 
-        console.log("Creating Paradise Pags payment:", { amount, description, productHash, customer: customerData });
+        console.log("Creating Paradise Pags payment:", { amount, description, productHash, customer: customerData, attempt: retryCount + 1 });
 
         const { data, error: fnError } = await supabase.functions.invoke('paradise-pix-create', {
           body: { 
@@ -56,17 +58,32 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
 
         if (fnError) {
           console.error('Error creating payment:', fnError);
+          // Auto-retry if we haven't exceeded max retries
+          if (retryCount < MAX_AUTO_RETRIES) {
+            console.log(`Auto-retrying... (${retryCount + 1}/${MAX_AUTO_RETRIES})`);
+            setRetryCount(prev => prev + 1);
+            setHasCreatedPayment(false);
+            return;
+          }
           setError('Erro ao criar pagamento. Tente novamente.');
           return;
         }
 
         if (data.error) {
           console.error('API error:', data.error);
+          // Auto-retry if we haven't exceeded max retries
+          if (retryCount < MAX_AUTO_RETRIES) {
+            console.log(`Auto-retrying after API error... (${retryCount + 1}/${MAX_AUTO_RETRIES})`);
+            setRetryCount(prev => prev + 1);
+            setHasCreatedPayment(false);
+            return;
+          }
           setError(data.error);
           return;
         }
 
         console.log('Payment created:', data);
+        setRetryCount(0); // Reset retry count on success
         setHasCalledSuccess(false);
         setSawNonApprovedStatus(false);
         setPaymentId(String(data.id));
@@ -76,14 +93,27 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
         trackAddPaymentInfo(amount / 100);
       } catch (err) {
         console.error('Exception creating payment:', err);
+        // Auto-retry on exception
+        if (retryCount < MAX_AUTO_RETRIES) {
+          console.log(`Auto-retrying after exception... (${retryCount + 1}/${MAX_AUTO_RETRIES})`);
+          setRetryCount(prev => prev + 1);
+          setHasCreatedPayment(false);
+          return;
+        }
         setError('Erro inesperado. Tente novamente.');
       } finally {
         setLoading(false);
       }
     };
 
-    createPayment();
-  }, [hasCreatedPayment, amount, description, productHash]);
+    // Add a small delay for retries
+    if (retryCount > 0) {
+      const delay = setTimeout(() => createPayment(), 1000 * retryCount);
+      return () => clearTimeout(delay);
+    } else {
+      createPayment();
+    }
+  }, [hasCreatedPayment, amount, description, productHash, retryCount]);
 
   useEffect(() => {
     if (!paymentId || hasCalledSuccess) return;
