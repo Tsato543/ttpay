@@ -6,6 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Generate a truly unique reference to avoid ID reuse
+function generateUniqueReference(): string {
+  const timestamp = Date.now();
+  const random1 = Math.random().toString(36).substring(2, 10);
+  const random2 = Math.random().toString(36).substring(2, 10);
+  const random3 = crypto.randomUUID().substring(0, 8);
+  return `REF-${timestamp}-${random1}-${random2}-${random3}`;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,8 +34,8 @@ serve(async (req) => {
       );
     }
 
-    // Generate unique reference
-    const reference = `REF-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    // Generate truly unique reference to ensure new transaction each time
+    const reference = generateUniqueReference();
 
     const payload = {
       amount,
@@ -41,7 +50,7 @@ serve(async (req) => {
       }
     };
 
-    console.log("Sending request to Paradise Pags:", JSON.stringify(payload));
+    console.log("Sending request to Paradise Pags with unique reference:", reference);
 
     const response = await fetch("https://multi.paradisepags.com/api/v1/transaction.php", {
       method: "POST",
@@ -63,15 +72,30 @@ serve(async (req) => {
       );
     }
 
-    // Store transaction in database
+    const transactionId = data.transaction_id || data.id;
+    
+    // Check if this transaction ID already exists and is paid (shouldn't happen with unique reference)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const transactionId = data.transaction_id || data.id;
-    
+    const { data: existingTx } = await supabase
+      .from("transactions")
+      .select("id, status")
+      .eq("id_transaction", String(transactionId))
+      .maybeSingle();
+
+    if (existingTx && (existingTx.status === "paid" || existingTx.status === "APPROVED")) {
+      console.error("Transaction ID already exists and is paid! This shouldn't happen:", transactionId);
+      return new Response(
+        JSON.stringify({ error: "Erro: transação duplicada. Tente novamente." }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Store new transaction in database
     const { error: insertError } = await supabase.from("transactions").insert({
-      id_transaction: transactionId,
+      id_transaction: String(transactionId),
       product_name: description || "Upsell",
       amount: amount / 100,
       user_name: customer?.name || "Cliente",
