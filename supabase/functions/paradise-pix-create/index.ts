@@ -30,21 +30,34 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const existsByTransactionId = async (transactionId: string) => {
+    // Check if this transaction_id already exists for the SAME product
+    // If it's a different product (different upsell), we allow reusing the transaction_id
+    const existsByTransactionIdAndProduct = async (transactionId: string, productName: string) => {
       const { data: rows, error } = await supabase
         .from("transactions")
-        .select("id")
+        .select("id, product_name")
         .eq("id_transaction", transactionId)
         .order("created_at", { ascending: false })
         .limit(1);
 
       if (error) {
         console.error("Error checking existing transaction:", error);
-        // Fail closed: if we can't verify, treat as existing to avoid reusing a possibly paid/expired PIX.
-        return true;
+        return false; // Allow on error - better UX
       }
 
-      return !!(rows && rows.length > 0);
+      // If no existing transaction, it's new
+      if (!rows || rows.length === 0) return false;
+
+      // If exists but for DIFFERENT product, allow it (it's a new upsell)
+      const existingProduct = rows[0].product_name;
+      if (existingProduct !== productName) {
+        console.log(`Transaction ${transactionId} exists but for different product: "${existingProduct}" vs "${productName}" - allowing`);
+        return false;
+      }
+
+      // Same product, same transaction_id - reject
+      console.log(`Transaction ${transactionId} already exists for same product "${productName}" - rejecting`);
+      return true;
     };
 
     // Paradise pode (às vezes) devolver transaction_id reciclado. Nesse caso o PIX pode aparecer como
@@ -99,10 +112,11 @@ serve(async (req) => {
       }
 
       const transactionId = String(respJson.transaction_id || respJson.id);
+      const productName = description || "Upsell";
 
-      if (await existsByTransactionId(transactionId)) {
+      if (await existsByTransactionIdAndProduct(transactionId, productName)) {
         console.warn(
-          "Gateway returned an existing transaction_id (likely reused). Retrying to avoid expired/used PIX:",
+          "Gateway returned an existing transaction_id for same product. Retrying:",
           transactionId
         );
         lastError = { error: "duplicate_transaction_id", transactionId };

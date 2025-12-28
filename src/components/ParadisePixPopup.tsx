@@ -422,7 +422,6 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
               borderRadius: '8px',
               fontSize: '13px',
               fontWeight: 500,
-              marginBottom: status === 'PENDING' ? '12px' : 0,
             }}>
               <span style={{
                 width: '10px',
@@ -438,33 +437,6 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
                 {status === 'CANCELED' && 'Pagamento cancelado'}
               </span>
             </div>
-
-            {status === 'PENDING' && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  const ok = window.confirm(
-                    'Se você já pagou e a confirmação estiver demorando, você pode continuar. Confirmar continuidade?'
-                  );
-                  if (ok) onSuccess();
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px 14px',
-                  background: '#2d3436',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Já paguei — continuar
-              </button>
-            )}
           </>
         )}
       </div>
