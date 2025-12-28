@@ -37,15 +37,13 @@ serve(async (req) => {
     const extraRandom = crypto.randomUUID().split('-')[0];
     const reference = `UP-${timestamp}-${randomPart}-${extraRandom}`;
     
-    // Generate a unique productHash for each request to force Paradise to create a new PIX
-    // The gateway caches PIX by productHash + customer, so we need unique hash each time
-    const dynamicProductHash = productHash ? `${productHash}-${timestamp}-${randomPart}` : `dynamic-${timestamp}-${randomPart}`;
+    // Use the original productHash - it must match exactly what's configured in Paradise Pags
 
     const payload = {
       amount,
       description: description || "Upsell",
       reference,
-      productHash: dynamicProductHash,
+      productHash,
       customer: {
         name: customer?.name || "Cliente",
         email: customer?.email || "cliente@email.com",
