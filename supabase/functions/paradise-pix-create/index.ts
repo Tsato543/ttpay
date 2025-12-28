@@ -25,8 +25,11 @@ serve(async (req) => {
       );
     }
 
-    // Generate unique reference
-    const reference = `REF-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    // Generate unique reference with more entropy to prevent reuse
+    const timestamp = Date.now();
+    const randomPart = Math.random().toString(36).substring(2, 10);
+    const extraRandom = crypto.randomUUID().split('-')[0];
+    const reference = `UP-${timestamp}-${randomPart}-${extraRandom}`;
 
     const payload = {
       amount,
