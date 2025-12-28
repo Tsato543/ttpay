@@ -38,13 +38,18 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data: txRow, error: txErr } = await supabase
+    // Get the most recent transaction with this id_transaction (there may be duplicates)
+    const { data: txRows, error: txErr } = await supabase
       .from("transactions")
-      .select("created_at, status, paid_at")
+      .select("id, created_at, status, paid_at")
       .eq("id_transaction", transactionId)
-      .maybeSingle();
+      .order("created_at", { ascending: false })
+      .limit(1);
 
     if (txErr) console.error("Error reading transaction from DB:", txErr);
+    
+    const txRow = txRows && txRows.length > 0 ? txRows[0] : null;
+    console.log("Found transaction row:", txRow ? { id: txRow.id, status: txRow.status, created_at: txRow.created_at } : "none");
 
     // If this transaction id is old, we consider it stale to prevent false approvals/redirects.
     // (PIX typically expires in minutes; if it's older than this, user should generate a new one.)
@@ -83,18 +88,23 @@ serve(async (req) => {
     if (data.status === "approved" || data.status === "APPROVED" || data.status === "paid") {
       status = "APPROVED";
 
-      const { error: updateError } = await supabase
-        .from("transactions")
-        .update({
-          status: "paid",
-          paid_at: new Date().toISOString()
-        })
-        .eq("id_transaction", transactionId);
+      // Update only the specific transaction row we found (using primary key id)
+      if (txRow?.id) {
+        const { error: updateError } = await supabase
+          .from("transactions")
+          .update({
+            status: "paid",
+            paid_at: new Date().toISOString()
+          })
+          .eq("id", txRow.id);
 
-      if (updateError) {
-        console.error("Error updating transaction:", updateError);
+        if (updateError) {
+          console.error("Error updating transaction:", updateError);
+        } else {
+          console.log("Transaction updated to paid:", transactionId, "row id:", txRow.id);
+        }
       } else {
-        console.log("Transaction updated to paid:", transactionId);
+        console.warn("No transaction row found to update for:", transactionId);
       }
     } else if (data.status === "rejected" || data.status === "REJECTED") {
       status = "REJECTED";
