@@ -107,6 +107,16 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
         const statusData = await response.json();
         console.log('Payment status response:', statusData);
 
+        // Backend can flag stale transaction ids to prevent false approvals/redirects
+        if (statusData?.stale) {
+          console.warn('Stale PIX detected; forcing user to generate a new code');
+          setError('Este PIX expirou. Clique em "Tentar novamente" para gerar um novo código.');
+          setPaymentId(null);
+          setPixCode(null);
+          setStatus('PENDING');
+          return;
+        }
+
         if (statusData.status && statusData.status !== 'APPROVED') {
           setSawNonApprovedStatus(true);
         }
