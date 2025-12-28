@@ -30,114 +30,52 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check if this transaction_id already exists for the SAME product
-    // If it's a different product (different upsell), we allow reusing the transaction_id
-    const existsByTransactionIdAndProduct = async (transactionId: string, productName: string) => {
-      const { data: rows, error } = await supabase
-        .from("transactions")
-        .select("id, product_name")
-        .eq("id_transaction", transactionId)
-        .order("created_at", { ascending: false })
-        .limit(1);
 
-      if (error) {
-        console.error("Error checking existing transaction:", error);
-        return false; // Allow on error - better UX
-      }
+    // Generate unique reference with more entropy to guarantee a NEW PIX every time
+    const timestamp = Date.now();
+    const randomPart = Math.random().toString(36).substring(2, 10);
+    const extraRandom = crypto.randomUUID().split('-')[0];
+    const reference = `UP-${timestamp}-${randomPart}-${extraRandom}`;
+    
+    // Generate a unique productHash for each request to force Paradise to create a new PIX
+    // The gateway caches PIX by productHash + customer, so we need unique hash each time
+    const dynamicProductHash = productHash ? `${productHash}-${timestamp}-${randomPart}` : `dynamic-${timestamp}-${randomPart}`;
 
-      // If no existing transaction, it's new
-      if (!rows || rows.length === 0) return false;
-
-      // If exists but for DIFFERENT product, allow it (it's a new upsell)
-      const existingProduct = rows[0].product_name;
-      if (existingProduct !== productName) {
-        console.log(`Transaction ${transactionId} exists but for different product: "${existingProduct}" vs "${productName}" - allowing`);
-        return false;
-      }
-
-      // Same product, same transaction_id - reject
-      console.log(`Transaction ${transactionId} already exists for same product "${productName}" - rejecting`);
-      return true;
+    const payload = {
+      amount,
+      description: description || "Upsell",
+      reference,
+      productHash: dynamicProductHash,
+      customer: {
+        name: customer?.name || "Cliente",
+        email: customer?.email || "cliente@email.com",
+        document: customer?.document || "00000000000",
+        phone: customer?.phone || "00000000000",
+      },
     };
 
-    // Paradise pode (às vezes) devolver transaction_id reciclado. Nesse caso o PIX pode aparecer como
-    // "expirado"/"já utilizado" no banco do usuário. Então tentamos gerar novamente com outra referência.
-    // Aumentamos para 5 tentativas com delay entre elas para maior confiabilidade.
-    const MAX_CREATE_ATTEMPTS = 5;
-    let data: any = null;
-    let lastError: any = null;
+    console.log("Sending request to Paradise Pags:", JSON.stringify(payload));
 
-    for (let attempt = 1; attempt <= MAX_CREATE_ATTEMPTS; attempt++) {
-      // Delay entre tentativas (exceto na primeira)
-      if (attempt > 1) {
-        await new Promise(resolve => setTimeout(resolve, 500 * attempt));
-      }
-      // Generate unique reference with more entropy to prevent reuse
-      const timestamp = Date.now();
-      const randomPart = Math.random().toString(36).substring(2, 10);
-      const extraRandom = crypto.randomUUID().split('-')[0];
-      const reference = `UP-${timestamp}-${randomPart}-${extraRandom}`;
+    const response = await fetch("https://multi.paradisepags.com/api/v1/transaction.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": apiKey,
+      },
+      body: JSON.stringify(payload),
+    });
 
-      const payload = {
-        amount,
-        description: description || "Upsell",
-        reference,
-        productHash,
-        customer: {
-          name: customer?.name || "Cliente",
-          email: customer?.email || "cliente@email.com",
-          document: customer?.document || "00000000000",
-          phone: customer?.phone || "00000000000",
-        },
-      };
+    const data = await response.json();
+    console.log("Paradise Pags response:", JSON.stringify(data));
 
-      console.log(`Sending request to Paradise Pags (attempt ${attempt}/${MAX_CREATE_ATTEMPTS}):`, JSON.stringify(payload));
-
-      const response = await fetch("https://multi.paradisepags.com/api/v1/transaction.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": apiKey,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const respJson = await response.json();
-      console.log("Paradise Pags response:", JSON.stringify(respJson));
-
-      if (!response.ok || respJson.error) {
-        lastError = respJson;
-        console.error("Paradise Pags API error:", respJson);
-        break;
-      }
-
-      const transactionId = String(respJson.transaction_id || respJson.id);
-      const productName = description || "Upsell";
-
-      if (await existsByTransactionIdAndProduct(transactionId, productName)) {
-        console.warn(
-          "Gateway returned an existing transaction_id for same product. Retrying:",
-          transactionId
-        );
-        lastError = { error: "duplicate_transaction_id", transactionId };
-        continue;
-      }
-
-      data = respJson;
-      break;
-    }
-
-    if (!data) {
+    if (!response.ok || data.error) {
+      console.error("Paradise Pags API error:", data);
       return new Response(
-        JSON.stringify({
-          error:
-            lastError?.message ||
-            lastError?.error ||
-            "Não foi possível gerar um novo PIX agora. Clique em 'Tentar novamente'.",
-        }),
+        JSON.stringify({ error: data.message || data.error || "Erro ao criar PIX" }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
 
     const transactionId = String(data.transaction_id || data.id);
 
