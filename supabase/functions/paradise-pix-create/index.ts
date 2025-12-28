@@ -40,7 +40,11 @@ serve(async (req) => {
     const payload = {
       amount,
       description: description || "Upsell",
+      // Paradise Pags parece reutilizar transações quando recebe o mesmo identificador.
+      // Enviamos o mesmo valor em múltiplos campos comuns para forçar unicidade.
       reference,
+      external_id: reference,
+      id: reference,
       productHash,
       customer: {
         name: customer?.name || "Cliente",
