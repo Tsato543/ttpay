@@ -13,7 +13,13 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const transactionId = url.searchParams.get("id");
+
+    // Accept both GET (?id=) and POST ({ id }) for easier frontend integration
+    let transactionId = url.searchParams.get("id");
+    if (!transactionId && req.method !== 'GET') {
+      const body = await req.json().catch(() => null);
+      transactionId = body?.id ?? null;
+    }
 
     if (!transactionId) {
       return new Response(
@@ -51,23 +57,9 @@ serve(async (req) => {
     const txRow = txRows && txRows.length > 0 ? txRows[0] : null;
     console.log("Found transaction row:", txRow ? { id: txRow.id, status: txRow.status, created_at: txRow.created_at } : "none");
 
-    // If this transaction id is old, we consider it stale to prevent false approvals/redirects.
-    // (PIX typically expires in minutes; if it's older than this, user should generate a new one.)
-    const STALE_MINUTES = 30;
-    if (txRow?.created_at) {
-      const createdAtMs = Date.parse(txRow.created_at);
-      const ageMinutes = (Date.now() - createdAtMs) / 60000;
-      if (Number.isFinite(ageMinutes) && ageMinutes > STALE_MINUTES && txRow.paid_at) {
-        console.warn("Stale paid transaction id detected; returning PENDING to avoid false redirect", {
-          transactionId,
-          ageMinutes,
-        });
-        return new Response(
-          JSON.stringify({ status: "PENDING", stale: true }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
+    // NOTE: Previously we attempted to flag "stale" transaction ids to prevent false redirects.
+    // This caused false "PIX expirado" in real payments when the provider reused transaction ids.
+    // We now always return the provider status and let the frontend proceed accordingly.
 
     const response = await fetch(
       `https://multi.paradisepags.com/api/v1/query.php?action=get_transaction&id=${transactionId}`,
