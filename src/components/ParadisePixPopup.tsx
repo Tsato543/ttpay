@@ -328,11 +328,9 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
                 gap: '8px',
                 alignItems: 'stretch',
               }}>
-                <textarea
+                <input
                   readOnly
                   value={pixCode}
-                  onFocus={(e) => e.currentTarget.select()}
-                  rows={4}
                   style={{
                     flex: 1,
                     padding: '14px',
@@ -342,10 +340,8 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
                     fontFamily: 'monospace',
                     backgroundColor: '#fff',
                     color: '#333',
-                    resize: 'none',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-all',
-                    overflow: 'auto',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                   }}
                 />
                 <button
