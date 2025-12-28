@@ -21,7 +21,7 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
   const [status, setStatus] = useState<string>('PENDING');
   const [hasCreatedPayment, setHasCreatedPayment] = useState(false);
   const [hasCalledSuccess, setHasCalledSuccess] = useState(false);
-  const [initialStatusReceived, setInitialStatusReceived] = useState(false);
+  const [sawNonApprovedStatus, setSawNonApprovedStatus] = useState(false);
 
   useEffect(() => {
     trackInitiateCheckout(amount / 100, description || 'Pagamento PIX');
@@ -67,7 +67,9 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
         }
 
         console.log('Payment created:', data);
-        setPaymentId(data.id);
+        setHasCalledSuccess(false);
+        setSawNonApprovedStatus(false);
+        setPaymentId(String(data.id));
         setPixCode(data.qr_code);
         setStatus('PENDING');
         
@@ -84,10 +86,9 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
   }, [hasCreatedPayment, amount, description, productHash]);
 
   useEffect(() => {
-    if (!paymentId || status === 'APPROVED' || hasCalledSuccess) return;
+    if (!paymentId || hasCalledSuccess) return;
 
     console.log('Starting payment status polling for:', paymentId);
-    let isFirstCheck = true;
 
     const checkStatus = async () => {
       try {
@@ -106,27 +107,31 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
         const statusData = await response.json();
         console.log('Payment status response:', statusData);
 
-        // Se é a primeira verificação e já veio APPROVED, algo está errado
-        // (pode ser cache ou transação anterior) - ignorar e continuar polling
-        if (isFirstCheck && statusData.status === 'APPROVED') {
-          console.warn('First check returned APPROVED - ignoring possible cached result');
-          isFirstCheck = false;
-          setInitialStatusReceived(true);
+        if (statusData.status && statusData.status !== 'APPROVED') {
+          setSawNonApprovedStatus(true);
+        }
+
+        // Só aceita APPROVED se já vimos pelo menos um status não aprovado antes.
+        // Isso evita redirecionar por transação antiga/reutilizada/cached.
+        if (statusData.status === 'APPROVED') {
+          if (!sawNonApprovedStatus) {
+            console.warn('Received APPROVED before any non-approved status; ignoring as possible stale/cached id');
+            return;
+          }
+
+          if (!hasCalledSuccess) {
+            setStatus('APPROVED');
+            setHasCalledSuccess(true);
+            console.log('Payment APPROVED! Tracking purchase and calling onSuccess');
+            trackPurchase(amount / 100, description || 'Pagamento PIX', paymentId);
+            setTimeout(() => {
+              onSuccess();
+            }, 500);
+          }
           return;
         }
-        
-        isFirstCheck = false;
-        setInitialStatusReceived(true);
 
-        if (statusData.status === 'APPROVED' && !hasCalledSuccess) {
-          setStatus('APPROVED');
-          setHasCalledSuccess(true);
-          console.log('Payment APPROVED! Tracking purchase and calling onSuccess');
-          trackPurchase(amount / 100, description || 'Pagamento PIX', paymentId);
-          setTimeout(() => {
-            onSuccess();
-          }, 500);
-        } else if (statusData.status) {
+        if (statusData.status) {
           setStatus(statusData.status);
         }
       } catch (err) {
@@ -134,17 +139,16 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
       }
     };
 
-    // Aguardar um pouco antes da primeira verificação para garantir que a transação foi registrada
     const initialDelay = setTimeout(() => {
       checkStatus();
     }, 1500);
-    
+
     const interval = setInterval(checkStatus, 3000);
     return () => {
       clearTimeout(initialDelay);
       clearInterval(interval);
     };
-  }, [paymentId, status, onSuccess, amount, description, hasCalledSuccess]);
+  }, [paymentId, onSuccess, amount, description, hasCalledSuccess, sawNonApprovedStatus]);
 
   const handleCopy = useCallback(async () => {
     if (pixCode) {
@@ -195,16 +199,22 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: 'rgba(0,0,0,0.6)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9999,
-      padding: '20px',
-    }}>
+    <div
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '20px',
+      }}
+    >
       <div style={{
         backgroundColor: '#fff',
         borderRadius: '16px',
@@ -215,8 +225,13 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
         fontFamily: 'Inter, system-ui, sans-serif',
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
       }}>
-        <button 
-          onClick={onClose}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+          }}
           style={{
             position: 'absolute',
             top: '16px',
@@ -266,8 +281,11 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
         {error && (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <p style={{ color: '#e74c3c', fontSize: '14px', margin: '0 0 16px' }}>{error}</p>
-            <button 
-              onClick={() => {
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 setHasCreatedPayment(false);
                 setError(null);
               }}
@@ -326,8 +344,13 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
                     textOverflow: 'ellipsis',
                   }}
                 />
-                <button 
-                  onClick={handleCopy}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCopy();
+                  }}
                   style={{
                     padding: '14px 20px',
                     backgroundColor: copied ? '#00b894' : '#2d3436',
