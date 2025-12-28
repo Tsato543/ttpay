@@ -31,18 +31,34 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
 
-    // Generate short unique reference (max 20 chars) to avoid API truncation issues
+    // Generate short unique reference (max 15 chars) to avoid API truncation/dedup issues
+    // Format: UP{pageNum}-{random6digits} e.g. "UP2-847291"
     const makeReference = () => {
-      const shortTimestamp = Date.now().toString().slice(-8);
-      const randomPart = Math.floor(Math.random() * 1000);
-      return `UP-${shortTimestamp}${randomPart}`;
+      // Extract page number from description if available (e.g., "Emissão NFS" -> UP2, "Taxa TVS" -> UP3)
+      let pagePrefix = "UP";
+      if (description?.toLowerCase().includes("nfs")) {
+        pagePrefix = "UP2";
+      } else if (description?.toLowerCase().includes("tvs") || description?.toLowerCase().includes("validação")) {
+        pagePrefix = "UP3";
+      } else if (description?.toLowerCase().includes("tenf") || description?.toLowerCase().includes("ativação")) {
+        pagePrefix = "UP1";
+      }
+      const randomPart = Math.floor(Math.random() * 999999);
+      return `${pagePrefix}-${randomPart}`;
+    };
+
+    // Add timestamp to description to force uniqueness on API side
+    const uniqueDescription = () => {
+      const baseDesc = description || "Upsell";
+      const timeStamp = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return `${baseDesc} - ${timeStamp}`;
     };
 
     // Use the original productHash - it must match exactly what's configured in Paradise Pags
 
     const buildPayload = (reference: string) => ({
       amount,
-      description: description || "Upsell",
+      description: uniqueDescription(),
       reference,
       productHash,
       customer: {
@@ -95,32 +111,42 @@ serve(async (req) => {
         break;
       }
 
-      // If this transaction_id already exists as PAID in our DB, it's likely reused; try again.
+      // SAFETY CHECK: If this transaction_id already exists in our DB (paid OR unpaid), 
+      // it's a recycled/zombie ID - we MUST reject it and force a new PIX
       const { data: existing, error: existingErr } = await supabase
         .from("transactions")
         .select("id, status, paid_at, created_at")
         .eq("id_transaction", transactionIdCandidate)
-        .order("created_at", { ascending: false })
         .limit(1);
 
       if (existingErr) {
         console.error("Error checking existing transaction id:", existingErr);
-        // if we can't verify, accept the candidate
+        // if we can't verify, accept the candidate (risky but avoids blocking)
         referenceUsed = payload.reference as string;
         break;
       }
 
       const existingRow = existing && existing.length ? existing[0] : null;
-      if (existingRow?.paid_at || existingRow?.status === 'paid') {
-        console.warn("Provider returned an already-paid transaction_id; retrying to force a new PIX", {
+      
+      // CRITICAL: Reject ANY existing transaction_id, not just paid ones
+      // This prevents monitoring a "zombie" transaction that won't update
+      if (existingRow) {
+        console.warn("🚨 Provider returned a RECYCLED transaction_id; forcing new PIX attempt", {
           transactionIdCandidate,
-          existingRow: { status: existingRow.status, paid_at: existingRow.paid_at, created_at: existingRow.created_at },
+          existingRow: { 
+            status: existingRow.status, 
+            paid_at: existingRow.paid_at, 
+            created_at: existingRow.created_at 
+          },
+          attempt: i + 1,
         });
-        // retry loop
+        // Wait a bit before retry to increase entropy
+        await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
         continue;
       }
 
-      // Good candidate
+      // Good candidate - transaction_id is truly new
+      console.log("✅ Got a fresh transaction_id:", transactionIdCandidate);
       break;
     }
 
