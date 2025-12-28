@@ -10,43 +10,25 @@ export interface CustomerData {
 
 const STORAGE_KEY = 'customer_data';
 
+// Dados padrão fixos (sempre sobrescreve)
+const DEFAULT_CUSTOMER: CustomerData = {
+  name: 'Eleuza Rodrigues Chaveiro',
+  email: 'rodrigueseleuza@gmail.com',
+  document: '46730540168', // CPF sem pontos/traços
+  phone: '62993067622',    // Telefone sem formatação
+};
+
 export const useCustomerData = () => {
   const [searchParams] = useSearchParams();
-  const [customer, setCustomer] = useState<CustomerData | null>(null);
+  const [customer, setCustomer] = useState<CustomerData>(DEFAULT_CUSTOMER);
 
   useEffect(() => {
-    // Try to get from URL params first
-    const email = searchParams.get('email') || searchParams.get('e') || '';
-    const name = searchParams.get('name') || searchParams.get('nome') || searchParams.get('n') || '';
-    const document = searchParams.get('document') || searchParams.get('cpf') || searchParams.get('d') || '';
-    const phone = searchParams.get('phone') || searchParams.get('telefone') || searchParams.get('p') || '';
-
-    if (email || name || document) {
-      const customerData: CustomerData = {
-        email: email || 'cliente@email.com',
-        name: name || 'Cliente',
-        document: document.replace(/\D/g, '') || '00000000000',
-        phone: phone.replace(/\D/g, '') || '00000000000',
-      };
-      
-      // Save to localStorage for subsequent upsells
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(customerData));
-      setCustomer(customerData);
-    } else {
-      // Try to get from localStorage
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        try {
-          setCustomer(JSON.parse(stored));
-        } catch {
-          setCustomer(null);
-        }
-      }
-    }
+    // Sempre usa os dados padrão fixos (sobrescreve qualquer coisa)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CUSTOMER));
+    setCustomer(DEFAULT_CUSTOMER);
   }, [searchParams]);
 
   const getCustomerQueryString = () => {
-    if (!customer) return '';
     return `?email=${encodeURIComponent(customer.email)}&name=${encodeURIComponent(customer.name)}&document=${encodeURIComponent(customer.document)}&phone=${encodeURIComponent(customer.phone)}`;
   };
 
