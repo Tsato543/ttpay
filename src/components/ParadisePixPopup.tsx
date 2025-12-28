@@ -38,6 +38,11 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
         setLoading(true);
         setError(null);
 
+        // LIMPEZA DE ESTADO (crucial): esquece qualquer PIX anterior antes de gerar um novo
+        setPaymentId(null);
+        setPixCode(null);
+        setStatus('PENDING');
+
         const customerData = customer || {
           name: "Cliente",
           email: "cliente@email.com",
@@ -48,11 +53,11 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
         console.log("Creating Paradise Pags payment:", { amount, description, productHash, customer: customerData, attempt: retryCount + 1 });
 
         const { data, error: fnError } = await supabase.functions.invoke('paradise-pix-create', {
-          body: { 
-            amount, 
+          body: {
+            amount,
             description,
             productHash,
-            customer: customerData
+            customer: customerData,
           }
         });
 
@@ -305,6 +310,12 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                // LIMPEZA DE ESTADO antes de uma nova tentativa manual
+                setPaymentId(null);
+                setPixCode(null);
+                setStatus('PENDING');
+                setHasCalledSuccess(false);
+                setPollCount(0);
                 setHasCreatedPayment(false);
                 setError(null);
               }}
