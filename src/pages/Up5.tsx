@@ -10,7 +10,7 @@ const SALDO_ATUAL = 4287.90;
 const SALDO_CONVERTIDO = 29989.50;
 const TAXA_CAMBIO = 67.90;
 const TAXA_CAMBIO_CENTAVOS = 6790;
-const PRODUCT_HASH = 'pix_65476586f932';
+const PRODUCT_HASH = 'prod_5f2c818d6c80d1df';
 
 const formatBR = (value: number) => {
   return value

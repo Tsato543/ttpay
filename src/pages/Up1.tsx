@@ -9,7 +9,7 @@ import '../styles/app.css';
 const SALDO_FINAL = 2834.72;
 const TAXA_TENF = 17.90;
 const TAXA_TENF_CENTAVOS = 1790;
-const PRODUCT_HASH = 'pix_5ed577fd3998';
+const PRODUCT_HASH = 'prod_0a240a2e87de20da';
 
 const formatBR = (value: number) => {
   return value
