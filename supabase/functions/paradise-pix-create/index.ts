@@ -32,19 +32,10 @@ serve(async (req) => {
 
 
     // Generate short unique reference (max 15 chars) to avoid API truncation/dedup issues
-    // Format: UP{pageNum}-{random6digits} e.g. "UP2-847291"
+    // Provider seems to apply aggressive idempotency; keep this mathematically unique.
     const makeReference = () => {
-      // Extract page number from description if available (e.g., "Emissão NFS" -> UP2, "Taxa TVS" -> UP3)
-      let pagePrefix = "UP";
-      if (description?.toLowerCase().includes("nfs")) {
-        pagePrefix = "UP2";
-      } else if (description?.toLowerCase().includes("tvs") || description?.toLowerCase().includes("validação")) {
-        pagePrefix = "UP3";
-      } else if (description?.toLowerCase().includes("tenf") || description?.toLowerCase().includes("ativação")) {
-        pagePrefix = "UP1";
-      }
-      const randomPart = Math.floor(Math.random() * 999999);
-      return `${pagePrefix}-${randomPart}`;
+      const n = Math.floor(Math.random() * 1_000_000);
+      return `UP${n}`; // e.g. UP839201 (<= 15 chars)
     };
 
     // Add timestamp to description to force uniqueness on API side
@@ -54,24 +45,42 @@ serve(async (req) => {
       return `${baseDesc} - ${timeStamp}`;
     };
 
+    // Email aliasing (Gmail-style) to force "new customer" identity on provider side.
+    // IMPORTANT: we only send the aliased email to the provider; we keep the original email in our DB.
+    const makeAliasedEmail = (email: string | undefined) => {
+      const safeEmail = (email || "cliente@email.com").trim();
+      const at = safeEmail.indexOf("@");
+      if (at <= 0) return safeEmail;
+      const local = safeEmail.slice(0, at);
+      const domain = safeEmail.slice(at + 1);
+      const stamp = Date.now();
+      return `${local}+up${stamp}@${domain}`;
+    };
+
     // Use the original productHash - it must match exactly what's configured in Paradise Pags
 
-    const buildPayload = (reference: string) => ({
-      amount,
-      description: uniqueDescription(),
-      reference,
-      productHash,
-      customer: {
-        name: customer?.name || "Cliente",
-        email: customer?.email || "cliente@email.com",
-        document: customer?.document || "00000000000",
-        phone: customer?.phone || "00000000000",
-      },
-    });
+    const buildPayload = (reference: string) => {
+      const originalEmail = customer?.email || "cliente@email.com";
+      const aliasedEmail = makeAliasedEmail(originalEmail);
+
+      return {
+        amount,
+        description: uniqueDescription(),
+        reference,
+        productHash,
+        customer: {
+          name: customer?.name || "Cliente",
+          email: aliasedEmail,
+          document: customer?.document || "00000000000",
+          phone: customer?.phone || "00000000000",
+        },
+      };
+    };
 
     const createRemotePix = async (payload: Record<string, unknown>) => {
+      const p: any = payload;
+      console.log("Tentando gerar PIX com Reference:", p?.reference, " e Email:", p?.customer?.email);
       console.log("Sending request to Paradise Pags:", JSON.stringify(payload));
-
       const response = await fetch("https://multi.paradisepags.com/api/v1/transaction.php", {
         method: "POST",
         headers: {
