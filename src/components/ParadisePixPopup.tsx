@@ -21,7 +21,7 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
   const [status, setStatus] = useState<string>('PENDING');
   const [hasCreatedPayment, setHasCreatedPayment] = useState(false);
   const [hasCalledSuccess, setHasCalledSuccess] = useState(false);
-  const [sawNonApprovedStatus, setSawNonApprovedStatus] = useState(false);
+  const [pollCount, setPollCount] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
   const MAX_AUTO_RETRIES = 3;
 
@@ -85,7 +85,7 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
         console.log('Payment created:', data);
         setRetryCount(0); // Reset retry count on success
         setHasCalledSuccess(false);
-        setSawNonApprovedStatus(false);
+        setPollCount(0);
         setPaymentId(String(data.id));
         setPixCode(data.qr_code);
         setStatus('PENDING');
@@ -147,18 +147,11 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
           return;
         }
 
-        if (statusData.status && statusData.status !== 'APPROVED') {
-          setSawNonApprovedStatus(true);
-        }
+        // Incrementa contador de polls
+        setPollCount(prev => prev + 1);
 
-        // Só aceita APPROVED se já vimos pelo menos um status não aprovado antes.
-        // Isso evita redirecionar por transação antiga/reutilizada/cached.
+        // Aceita APPROVED após o primeiro poll (delay inicial de 1.5s já garante que não é cache)
         if (statusData.status === 'APPROVED') {
-          if (!sawNonApprovedStatus) {
-            console.warn('Received APPROVED before any non-approved status; ignoring as possible stale/cached id');
-            return;
-          }
-
           if (!hasCalledSuccess) {
             setStatus('APPROVED');
             setHasCalledSuccess(true);
@@ -188,7 +181,7 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
       clearTimeout(initialDelay);
       clearInterval(interval);
     };
-  }, [paymentId, onSuccess, amount, description, hasCalledSuccess, sawNonApprovedStatus]);
+  }, [paymentId, onSuccess, amount, description, hasCalledSuccess, pollCount]);
 
   const handleCopy = useCallback(async () => {
     if (pixCode) {
