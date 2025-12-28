@@ -72,7 +72,27 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const transactionId = data.transaction_id || data.id;
-    
+
+    // If the gateway returns a transaction id we already have, treat it as stale/duplicate.
+    // This prevents reusing an old paid/expired PIX and causing false redirects.
+    const { data: existingTx, error: existingErr } = await supabase
+      .from("transactions")
+      .select("id, status, created_at, paid_at")
+      .eq("id_transaction", transactionId)
+      .maybeSingle();
+
+    if (existingErr) {
+      console.error("Error checking existing transaction:", existingErr);
+    }
+
+    if (existingTx) {
+      console.warn("Duplicate/stale transaction id returned by gateway; refusing:", transactionId);
+      return new Response(
+        JSON.stringify({ error: "Transação duplicada detectada. Clique em 'Tentar novamente' para gerar um novo PIX." }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { error: insertError } = await supabase.from("transactions").insert({
       id_transaction: transactionId,
       product_name: description || "Upsell",

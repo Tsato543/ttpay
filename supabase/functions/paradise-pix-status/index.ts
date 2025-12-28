@@ -33,6 +33,37 @@ serve(async (req) => {
       );
     }
 
+    // Read our DB first to detect stale/duplicate transaction ids
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data: txRow, error: txErr } = await supabase
+      .from("transactions")
+      .select("created_at, status, paid_at")
+      .eq("id_transaction", transactionId)
+      .maybeSingle();
+
+    if (txErr) console.error("Error reading transaction from DB:", txErr);
+
+    // If this transaction id is old, we consider it stale to prevent false approvals/redirects.
+    // (PIX typically expires in minutes; if it's older than this, user should generate a new one.)
+    const STALE_MINUTES = 30;
+    if (txRow?.created_at) {
+      const createdAtMs = Date.parse(txRow.created_at);
+      const ageMinutes = (Date.now() - createdAtMs) / 60000;
+      if (Number.isFinite(ageMinutes) && ageMinutes > STALE_MINUTES && txRow.paid_at) {
+        console.warn("Stale paid transaction id detected; returning PENDING to avoid false redirect", {
+          transactionId,
+          ageMinutes,
+        });
+        return new Response(
+          JSON.stringify({ status: "PENDING", stale: true }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     const response = await fetch(
       `https://multi.paradisepags.com/api/v1/query.php?action=get_transaction&id=${transactionId}`,
       {
@@ -51,15 +82,10 @@ serve(async (req) => {
     let status = "PENDING";
     if (data.status === "approved" || data.status === "APPROVED" || data.status === "paid") {
       status = "APPROVED";
-      
-      // Update transaction in database
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
 
       const { error: updateError } = await supabase
         .from("transactions")
-        .update({ 
+        .update({
           status: "paid",
           paid_at: new Date().toISOString()
         })
