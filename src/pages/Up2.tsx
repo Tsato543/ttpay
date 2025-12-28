@@ -9,7 +9,7 @@ import '../styles/app.css';
 const SALDO_FINAL = 2834.72;
 const TAXA_NFS = 9.90;
 const TAXA_NFS_CENTAVOS = 990;
-const PRODUCT_HASH = 'prod_0a240a2e87de20da';
+const PRODUCT_HASH = 'prod_up2_nfs_emissao';
 
 const formatBR = (value: number) => {
   return value

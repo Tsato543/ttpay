@@ -9,7 +9,7 @@ import '../styles/app.css';
 const SALDO_FINAL = 2834.72;
 const TAXA_TVS = 49.90;
 const TAXA_TVS_CENTAVOS = 4990;
-const PRODUCT_HASH = 'prod_0a240a2e87de20da';
+const PRODUCT_HASH = 'prod_up3_tvs_validacao';
 
 const formatBR = (value: number) => {
   return value
