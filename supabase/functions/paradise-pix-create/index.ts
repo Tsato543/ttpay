@@ -31,12 +31,11 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
 
-    // Generate unique reference with more entropy to guarantee a NEW PIX every time
+    // Generate short unique reference (max 20 chars) to avoid API truncation issues
     const makeReference = () => {
-      const timestamp = Date.now();
-      const randomPart = Math.random().toString(36).substring(2, 10);
-      const extraRandom = crypto.randomUUID().split('-')[0];
-      return `UP-${timestamp}-${randomPart}-${extraRandom}`;
+      const shortTimestamp = Date.now().toString().slice(-8);
+      const randomPart = Math.floor(Math.random() * 1000);
+      return `UP-${shortTimestamp}${randomPart}`;
     };
 
     // Use the original productHash - it must match exactly what's configured in Paradise Pags
