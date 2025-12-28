@@ -10,7 +10,7 @@ const SALDO_ANTIGO = 2834.72;
 const SALDO_NOVO = 4287.90;
 const TAXA_UPGRADE = 14.99;
 const TAXA_UPGRADE_CENTAVOS = 1499;
-const PRODUCT_HASH = 'prod_0a240a2e87de20da';
+const PRODUCT_HASH = 'pix_ff12d4b2e605';
 
 const formatBR = (value: number) => {
   return value
