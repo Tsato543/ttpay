@@ -123,30 +123,16 @@ const ParadisePixPopup = ({ amount, description, productHash, customer, onSucces
     const checkStatus = async () => {
       try {
         console.log('Checking payment status...');
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paradise-pix-status?id=${paymentId}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-          }
-        );
+        const { data: statusData, error: statusError } = await supabase.functions.invoke('paradise-pix-status', {
+          body: { id: paymentId },
+        });
 
-        const statusData = await response.json();
-        console.log('Payment status response:', statusData);
-
-        // Backend can flag stale transaction ids to prevent false approvals/redirects
-        if (statusData?.stale) {
-          console.warn('Stale PIX detected; forcing user to generate a new code');
-          setError('Este PIX expirou. Clique em "Tentar novamente" para gerar um novo código.');
-          setPaymentId(null);
-          setPixCode(null);
-          setStatus('PENDING');
+        if (statusError) {
+          console.error('Error checking status:', statusError);
           return;
         }
 
+        console.log('Payment status response:', statusData);
         // Incrementa contador de polls
         setPollCount(prev => prev + 1);
 
