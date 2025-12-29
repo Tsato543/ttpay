@@ -70,7 +70,7 @@ const Up1 = () => {
           <button
             className="paradise-upsell-btn"
             style={{
-              backgroundColor: '#28a745',
+              backgroundColor: '#fe2b54',
               color: '#ffffff',
               padding: '12px 20px',
               border: 'none',
@@ -88,7 +88,7 @@ const Up1 = () => {
             data-modal-btn-color="#28a745"
             data-modal-btn-text-color="#ffffff"
           >
-            Sim, eu quero esta oferta!
+            Ativar TENF Obrigatório
           </button>
 
           <p className="cta-footnote">
