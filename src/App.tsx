@@ -5,10 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Presell from "./pages/Presell";
-import StepAge from "./pages/StepAge";
-import StepName from "./pages/StepName";
-import Loading from "./pages/Loading";
-
 import Index from "./pages/Index";
 import Up1 from "./pages/Up1";
 import Up2 from "./pages/Up2";
@@ -27,16 +23,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* FUNIL PRESSELL */}
+          {/* PRESSELL PRIMEIRO */}
           <Route path="/" element={<Presell />} />
-          <Route path="/stepage" element={<StepAge />} />
-          <Route path="/stepname" element={<StepName />} />
-          <Route path="/loading" element={<Loading />} />
 
-          {/* SITE PRINCIPAL */}
-          <Route path="/home" element={<Index />} />
+          {/* APP PRINCIPAL DEPOIS */}
+          <Route path="/app" element={<Index />} />
 
-          {/* UPS */}
+          {/* UPSELLS (inalterado) */}
           <Route path="/up1" element={<Up1 />} />
           <Route path="/up2" element={<Up2 />} />
           <Route path="/up3" element={<Up3 />} />
