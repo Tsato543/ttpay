@@ -4,7 +4,7 @@ import { trackViewContent } from '@/lib/tiktokPixel';
 import '../styles/app.css';
 
 const SALDO_FINAL = 2834.72;
-const TAXA_TENF = 17.90;
+const TAXA_TENF = 19.90;
 
 const formatBR = (value: number) => {
   return value
